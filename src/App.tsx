@@ -28,6 +28,10 @@ import {
     WatchPage
 } from './pages/WatchPage';
 
+import {
+    DashboardPage
+} from './pages/DashboardPage';
+
 
 export default function App() {
 
@@ -53,6 +57,14 @@ export default function App() {
                         <AppLayout />
                     }
                 >
+
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <DashboardPage />
+                        }
+                    />
+
 
                     <Route
                         path="/library"
@@ -86,7 +98,7 @@ export default function App() {
                 path="/"
                 element={
                     <Navigate
-                        to="/library"
+                        to="/dashboard"
                         replace
                     />
                 }

@@ -1,6 +1,8 @@
 import {
+    NavLink,
     useNavigate
 } from 'react-router-dom';
+
 
 import {
     useAuth
@@ -11,6 +13,7 @@ export function AppHeader() {
 
     const navigate =
         useNavigate();
+
 
     const {
         user,
@@ -23,32 +26,34 @@ export function AppHeader() {
 
         await logout();
 
+
         navigate(
             '/login',
             {
-                replace: true
+                replace:
+                    true
             }
         );
+
     }
 
 
     return (
-        <header
-            className="app-header"
-        >
+
+        <header className="app-header">
 
             <button
                 type="button"
                 className="app-brand"
                 onClick={
                     () =>
-                        navigate('/library')
+                        navigate(
+                            '/library'
+                        )
                 }
             >
 
-                <span
-                    className="app-brand-icon"
-                >
+                <span className="app-brand-icon">
                     ▶
                 </span>
 
@@ -59,15 +64,42 @@ export function AppHeader() {
             </button>
 
 
-            <div
-                className="app-header-user"
-            >
+            <nav className="app-navigation">
+
+                <NavLink
+                    to="/dashboard"
+                    className={
+                        ({ isActive }) =>
+                            isActive
+                                ? 'active'
+                                : ''
+                    }
+                >
+                    Dashboard
+                </NavLink>
+
+
+                <NavLink
+                    to="/library"
+                    className={
+                        ({ isActive }) =>
+                            isActive
+                                ? 'active'
+                                : ''
+                    }
+                >
+                    Biblioteca
+                </NavLink>
+
+            </nav>
+
+
+            <div className="app-header-user">
 
                 {
                     user && (
-                        <div
-                            className="app-user-info"
-                        >
+
+                        <div className="app-user-info">
 
                             <strong>
                                 {
@@ -81,6 +113,7 @@ export function AppHeader() {
                             </span>
 
                         </div>
+
                     )
                 }
 
@@ -98,5 +131,7 @@ export function AppHeader() {
             </div>
 
         </header>
+
     );
+
 }
