@@ -259,7 +259,40 @@ export interface StudyTimeMetrics {
         seconds: number;
     };
 
+    weeklyGoal:
+        StudyTimeWeeklyGoal;
+
     weekDays:
         StudyTimeDay[];
 
 }
+
+export interface UpdateStudyTimeGoalResponse {
+
+    message: string;
+
+    weeklyGoal: {
+
+        targetMinutes: number;
+
+    };
+
+}
+
+
+export interface StudyTimeWeeklyGoal {
+
+    targetMinutes: number;
+
+    targetSeconds: number;
+
+    studiedSeconds: number;
+
+    remainingSeconds: number;
+
+    progressPercent: number;
+
+    achieved: boolean;
+}
+
+

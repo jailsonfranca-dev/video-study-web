@@ -144,9 +144,8 @@
 
 
 .dashboard-section-header h2 {
-    margin: 0;
-
     font-size: 20px;
+    margin-top: 3rem;
 }
 
 
@@ -797,7 +796,7 @@ max-width: 650px
 
     grid-template-columns:
         repeat(
-            5,
+            3,
             minmax(
                     0,
                     1fr
@@ -864,4 +863,137 @@ max-width: 500px
             1fr;
     }
 
+}
+
+.study-time-goal-input {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+.study-time-goal-input input {
+    width: 100%;
+
+    min-width: 0;
+
+    padding: 8px 10px;
+
+    border:
+            1px solid #d1d5db;
+
+    border-radius:
+            7px;
+
+    font-size:
+            16px;
+}
+
+
+.study-time-goal-input span {
+    font-size:
+            13px;
+
+    color:
+            #64748b;
+
+    white-space:
+            nowrap;
+}
+
+.study-time-goal-value {
+    display: block;
+
+    margin-top: 10px;
+
+    font-size: 24px;
+
+    font-weight: 700;
+
+    color: #0f172a;
+}
+
+
+.study-time-goal-value span {
+    font-size: 16px;
+
+    font-weight: 500;
+
+    color: #64748b;
+}
+
+
+.study-time-goal-progress-row {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 12px;
+}
+
+
+.study-time-goal-progress {
+    flex: 1;
+
+    height: 6px;
+
+    overflow: hidden;
+
+    border-radius: 999px;
+
+    background: #e5e7eb;
+}
+
+
+.study-time-goal-progress-fill {
+    height: 100%;
+
+    border-radius: inherit;
+
+    background: #2563eb;
+
+    transition:
+            width 0.3s ease;
+}
+
+
+.study-time-goal-progress-fill.completed {
+    background: #16a34a;
+}
+
+
+.study-time-goal-percent {
+    min-width: 40px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    color: #64748b;
+
+    text-align: right;
+}
+
+
+.study-time-goal-remaining {
+    display: block;
+
+    margin-top: 8px;
+
+    color: #64748b;
+}
+
+
+.study-time-goal-achieved {
+    display: block;
+
+    margin-top: 8px;
+
+    color: #15803d;
+
+    font-weight: 600;
 }

@@ -12,7 +12,8 @@ import type {
     DriveSyncResponse,
     UpdateWeeklyGoalResponse,
     RecentActivityResponse,
-    StudyTimeMetrics
+    StudyTimeMetrics,
+    UpdateStudyTimeGoalResponse
 
 } from '../types/dashboard';
 
@@ -144,6 +145,27 @@ export function getStudyTime(
         '/dashboard/study-time',
         {
             signal
+        }
+    );
+
+}
+
+export function updateStudyTimeGoal(
+    targetMinutes: number
+) {
+
+    return apiFetch<UpdateStudyTimeGoalResponse>(
+        '/dashboard/study-time-goal',
+        {
+
+            method:
+                'PATCH',
+
+            body:
+                JSON.stringify({
+                    targetMinutes
+                })
+
         }
     );
 

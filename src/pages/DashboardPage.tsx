@@ -13,7 +13,8 @@ import {
     getRecentActivity,
     syncGoogleDrive,
     updateWeeklyGoal,
-    getStudyTime
+    getStudyTime,
+    updateStudyTimeGoal
 } from '../api/dashboardApi';
 
 
@@ -110,6 +111,32 @@ export function DashboardPage() {
     ] =
         useState<RecentActivityItem[]>(
             []
+        );
+
+    const [
+        editingStudyTimeGoal,
+        setEditingStudyTimeGoal
+    ] =
+        useState(
+            false
+        );
+
+
+    const [
+        studyTimeGoalHours,
+        setStudyTimeGoalHours
+    ] =
+        useState(
+            ''
+        );
+
+
+    const [
+        savingStudyTimeGoal,
+        setSavingStudyTimeGoal
+    ] =
+        useState(
+            false
         );
 
 
@@ -495,6 +522,189 @@ export function DashboardPage() {
         setCalendarMonth(
             month
         );
+
+    }
+
+    /*
+    * =========================
+    * TimeGoalEdit
+    * =========================
+    */
+
+    function handleStartStudyTimeGoalEdit() {
+
+        if (!studyTime) {
+
+            return;
+
+        }
+
+
+        const hours =
+            studyTime
+                .weeklyGoal
+                .targetMinutes /
+            60;
+
+
+        setStudyTimeGoalHours(
+            String(
+                hours
+            )
+        );
+
+
+        setEditingStudyTimeGoal(
+            true
+        );
+
+
+        setError(
+            null
+        );
+
+    }
+
+    /*
+     * =========================
+     * Criar Cancelar
+     * =========================
+     */
+
+    function handleCancelStudyTimeGoalEdit() {
+
+        setEditingStudyTimeGoal(
+            false
+        );
+
+
+        setStudyTimeGoalHours(
+            ''
+        );
+
+
+        setError(
+            null
+        );
+
+    }
+
+    /*
+    * =========================
+    * Criar Salvar
+    * =========================
+    */
+
+    async function handleSaveStudyTimeGoal() {
+
+        const hours =
+            Number(
+                studyTimeGoalHours
+            );
+
+
+        if (
+            !Number.isFinite(
+                hours
+            )
+            ||
+            hours <= 0
+            ||
+            hours > 168
+        ) {
+
+            setError(
+                'A meta semanal deve estar entre 0,1 e 168 horas.'
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * Converte horas para minutos.
+         *
+         * Exemplo:
+         *
+         * 10h
+         * ↓
+         * 600 minutos
+         */
+        const targetMinutes =
+            Math.round(
+                hours *
+                60
+            );
+
+
+        try {
+
+            setSavingStudyTimeGoal(
+                true
+            );
+
+
+            setError(
+                null
+            );
+
+
+            await updateStudyTimeGoal(
+                targetMinutes
+            );
+
+
+            /*
+             * Busca novamente as métricas
+             * para atualizar target,
+             * remaining, progress etc.
+             */
+            const updatedStudyTime =
+                await getStudyTime();
+
+
+            setStudyTime(
+                updatedStudyTime
+            );
+
+
+            setEditingStudyTimeGoal(
+                false
+            );
+
+
+            setStudyTimeGoalHours(
+                ''
+            );
+
+
+        } catch (error) {
+
+            if (
+                error instanceof Error
+            ) {
+
+                setError(
+                    error.message
+                );
+
+            } else {
+
+                setError(
+                    'Não foi possível atualizar a meta semanal de tempo.'
+                );
+
+            }
+
+
+        } finally {
+
+            setSavingStudyTimeGoal(
+                false
+            );
+
+        }
 
     }
 
@@ -1359,9 +1569,274 @@ export function DashboardPage() {
             ========================== */
                 studyTime && (
 
+
                     <section
                         className="study-time-stats"
                     >
+
+
+                        <article
+                            className="dashboard-stat-card"
+                        >
+
+                            <div
+                                className="dashboard-stat-header"
+                            >
+
+        <span>
+            Meta semanal de tempo
+        </span>
+
+
+                                {
+                                    !editingStudyTimeGoal && (
+
+                                        <button
+
+                                            type="button"
+
+                                            className="weekly-goal-edit-button"
+
+                                            onClick={
+                                                handleStartStudyTimeGoalEdit
+                                            }
+
+                                        >
+
+                                            Editar
+
+                                        </button>
+
+                                    )
+                                }
+
+                            </div>
+
+
+                            {
+                                editingStudyTimeGoal
+                                    ? (
+
+                                        <div
+                                            className="weekly-goal-form"
+                                        >
+
+                                            <div
+                                                className="study-time-goal-input"
+                                            >
+
+                                                <input
+
+                                                    type="number"
+
+                                                    min="0.1"
+
+                                                    max="168"
+
+                                                    step="0.5"
+
+                                                    value={
+                                                        studyTimeGoalHours
+                                                    }
+
+                                                    onChange={
+                                                        event =>
+                                                            setStudyTimeGoalHours(
+                                                                event.target.value
+                                                            )
+                                                    }
+
+                                                    disabled={
+                                                        savingStudyTimeGoal
+                                                    }
+
+                                                    autoFocus
+
+                                                />
+
+
+                                                <span>
+                            horas
+                        </span>
+
+                                            </div>
+
+
+                                            <div
+                                                className="weekly-goal-actions"
+                                            >
+
+                                                <button
+
+                                                    type="button"
+
+                                                    onClick={
+                                                        handleSaveStudyTimeGoal
+                                                    }
+
+                                                    disabled={
+                                                        savingStudyTimeGoal
+                                                    }
+
+                                                >
+
+                                                    {
+                                                        savingStudyTimeGoal
+                                                            ? 'Salvando...'
+                                                            : 'Salvar'
+                                                    }
+
+                                                </button>
+
+
+                                                <button
+
+                                                    type="button"
+
+                                                    onClick={
+                                                        handleCancelStudyTimeGoalEdit
+                                                    }
+
+                                                    disabled={
+                                                        savingStudyTimeGoal
+                                                    }
+
+                                                >
+
+                                                    Cancelar
+
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+                                    )
+                                    : (
+
+                                        <>
+
+                                            <>
+                                                <strong className="study-time-goal-value">
+
+                                                    {
+                                                        formatStudyTime(
+                                                            studyTime
+                                                                .weeklyGoal
+                                                                .studiedSeconds
+                                                        )
+                                                    }
+
+                                                    <span>
+            {' / '}
+
+                                                        {
+                                                            formatStudyTime(
+                                                                studyTime
+                                                                    .weeklyGoal
+                                                                    .targetSeconds
+                                                            )
+                                                        }
+        </span>
+
+                                                </strong>
+
+
+                                                <div className="study-time-goal-progress-row">
+
+                                                    <div className="study-time-goal-progress">
+
+                                                        <div
+
+                                                            className={
+                                                                `study-time-goal-progress-fill ${
+                                                                    studyTime
+                                                                        .weeklyGoal
+                                                                        .achieved
+                                                                        ? 'completed'
+                                                                        : ''
+                                                                }`
+                                                            }
+
+                                                            style={{
+
+                                                                width:
+                                                                    `${Math.min(
+                                                                        studyTime
+                                                                            .weeklyGoal
+                                                                            .progressPercent,
+                                                                        100
+                                                                    )}%`
+
+                                                            }}
+
+                                                        />
+
+                                                    </div>
+
+
+                                                    <span className="study-time-goal-percent">
+
+            {
+                studyTime
+                    .weeklyGoal
+                    .progressPercent
+                    .toFixed(
+                        1
+                    )
+                    .replace(
+                        '.0',
+                        ''
+                    )
+            }
+
+                                                        %
+
+        </span>
+
+                                                </div>
+
+
+                                                {
+                                                    studyTime
+                                                        .weeklyGoal
+                                                        .achieved
+                                                        ? (
+
+                                                            <small className="study-time-goal-achieved">
+
+                                                                🎉 Meta de tempo concluída!
+
+                                                            </small>
+
+                                                        )
+                                                        : (
+
+                                                            <small className="study-time-goal-remaining">
+
+                                                                Faltam{' '}
+
+                                                                {
+                                                                    formatStudyTime(
+                                                                        studyTime
+                                                                            .weeklyGoal
+                                                                            .remainingSeconds
+                                                                    )
+                                                                }
+
+                                                            </small>
+
+                                                        )
+                                                }
+                                            </>
+
+                                        </>
+
+                                    )
+                            }
+
+                        </article>
+
 
                         <article
                             className="dashboard-stat-card"
@@ -1479,9 +1954,11 @@ export function DashboardPage() {
                         </article>
 
 
+
                         <article
                             className="dashboard-stat-card"
                         >
+
 
                 <span>
                     Melhor dia
@@ -1538,7 +2015,6 @@ export function DashboardPage() {
         </div>
 
     );
-
 
 
 }
