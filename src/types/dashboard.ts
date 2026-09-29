@@ -122,11 +122,22 @@ export interface ContinueStudyingVideo {
 
     name: string;
 
+
+    folderId:
+        string | null;
+
+
+    folderName:
+        string | null;
+
+
     durationSeconds:
         number | null;
 
+
     currentTimeSeconds:
         number;
+
 
     progressPercent:
         number;
@@ -162,5 +173,93 @@ export interface UpdateWeeklyGoalResponse {
     weeklyGoal: {
         target: number;
     };
+
+}
+
+export interface RecentActivityItem {
+
+    videoId: string;
+
+    videoName: string;
+
+    folderId:
+        string | null;
+
+    folderName:
+        string | null;
+
+    durationSeconds:
+        number | null;
+
+    currentTimeSeconds:
+        number;
+
+    progressPercent:
+        number;
+
+    completed:
+        boolean;
+
+    activityType:
+        'watched' |
+        'completed';
+
+    lastWatchedAt:
+        string | null;
+
+    completedAt:
+        string | null;
+
+    activityAt:
+        string | null;
+}
+
+
+export interface RecentActivityResponse {
+
+    activities:
+        RecentActivityItem[];
+
+}
+
+export interface StudyTimeDay {
+    date: string;
+    day:
+        | 'seg'
+        | 'ter'
+        | 'qua'
+        | 'qui'
+        | 'sex'
+        | 'sab'
+        | 'dom';
+    seconds: number;
+}
+
+
+export interface StudyTimeMetrics {
+
+    today: {
+        seconds: number;
+    };
+
+    week: {
+        seconds: number;
+    };
+
+    total: {
+        seconds: number;
+    };
+
+    averageDaily: {
+        seconds: number;
+    };
+
+    bestDay: {
+        date: string | null;
+        seconds: number;
+    };
+
+    weekDays:
+        StudyTimeDay[];
 
 }

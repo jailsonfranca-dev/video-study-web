@@ -10,8 +10,10 @@ import {
     getWeeklyActivity,
     getCalendarActivity,
     getContinueStudying,
+    getRecentActivity,
     syncGoogleDrive,
-    updateWeeklyGoal
+    updateWeeklyGoal,
+    getStudyTime
 } from '../api/dashboardApi';
 
 
@@ -19,7 +21,9 @@ import type {
     DashboardSummary,
     WeeklyActivityDay,
     CalendarActivityDay,
-    ContinueStudyingVideo
+    ContinueStudyingVideo,
+    RecentActivityItem,
+    StudyTimeMetrics
 } from '../types/dashboard';
 
 
@@ -41,6 +45,18 @@ import {
 import {
     DriveSyncCard
 } from '../components/dashboard/DriveSyncCard';
+
+import {
+    RecentActivity
+} from '../components/dashboard/RecentActivity';
+
+import {
+    StudyTimeChart
+} from '../components/dashboard/StudyTimeChart';
+
+import {
+    formatStudyTime
+} from '../utils/formatStudyTime';
 
 
 import '../components/dashboard/DashboardPage.css';
@@ -71,6 +87,14 @@ export function DashboardPage() {
             ''
         );
 
+    const [
+        studyTime,
+        setStudyTime
+    ] =
+        useState<StudyTimeMetrics | null>(
+            null
+        );
+
 
     const [
         savingWeeklyGoal,
@@ -78,6 +102,14 @@ export function DashboardPage() {
     ] =
         useState(
             false
+        );
+
+    const [
+        recentActivities,
+        setRecentActivities
+    ] =
+        useState<RecentActivityItem[]>(
+            []
         );
 
 
@@ -190,7 +222,9 @@ export function DashboardPage() {
                 const [
                     summaryResult,
                     weekResult,
-                    continueResult
+                    continueResult,
+                    recentActivityResult,
+                    studyTimeResult
                 ] =
                     await Promise.all([
 
@@ -204,9 +238,19 @@ export function DashboardPage() {
 
                         getContinueStudying(
                             signal
-                        )
+                        ),
+
+                        getRecentActivity(
+                            signal
+                        ),
+
+                        getStudyTime(
+                            signal
+                        ),
+
 
                     ]);
+
 
 
                 if (!summaryResult) {
@@ -216,6 +260,10 @@ export function DashboardPage() {
                     );
 
                 }
+
+                setStudyTime(
+                    studyTimeResult
+                );
 
 
                 setSummary(
@@ -231,6 +279,11 @@ export function DashboardPage() {
 
                 setContinueVideos(
                     continueResult?.videos ??
+                    []
+                );
+
+                setRecentActivities(
+                    recentActivityResult?.activities ??
                     []
                 );
 
@@ -616,6 +669,40 @@ export function DashboardPage() {
      * SINCRONIZAR GOOGLE DRIVE
      * =========================
      */
+
+    function formatBestDay(
+        dateValue:
+            string | null
+    ) {
+
+        if (!dateValue) {
+
+            return '—';
+
+        }
+
+
+        const date =
+            new Date(
+                `${dateValue}T12:00:00`
+            );
+
+
+        return date.toLocaleDateString(
+            'pt-BR',
+            {
+                weekday:
+                    'long',
+
+                day:
+                    '2-digit',
+
+                month:
+                    '2-digit'
+            }
+        );
+
+    }
 
     async function handleSync() {
 
@@ -1260,8 +1347,198 @@ export function DashboardPage() {
 
             />
 
+            <RecentActivity
+                activities={
+                    recentActivities
+                }
+            />
+
+
+            { /* =========================
+                    study-time-stats
+            ========================== */
+                studyTime && (
+
+                    <section
+                        className="study-time-stats"
+                    >
+
+                        <article
+                            className="dashboard-stat-card"
+                        >
+
+                <span>
+                    Tempo hoje
+                </span>
+
+
+                            <strong>
+
+                                {
+                                    formatStudyTime(
+                                        studyTime
+                                            .today
+                                            .seconds
+                                    )
+                                }
+
+                            </strong>
+
+
+                            <small>
+                                tempo efetivamente estudado
+                            </small>
+
+                        </article>
+
+
+                        <article
+                            className="dashboard-stat-card"
+                        >
+
+                <span>
+                    Esta semana
+                </span>
+
+
+                            <strong>
+
+                                {
+                                    formatStudyTime(
+                                        studyTime
+                                            .week
+                                            .seconds
+                                    )
+                                }
+
+                            </strong>
+
+
+                            <small>
+                                desde segunda-feira
+                            </small>
+
+                        </article>
+
+
+                        <article
+                            className="dashboard-stat-card"
+                        >
+
+                <span>
+                    Tempo total
+                </span>
+
+
+                            <strong>
+
+                                {
+                                    formatStudyTime(
+                                        studyTime
+                                            .total
+                                            .seconds
+                                    )
+                                }
+
+                            </strong>
+
+
+                            <small>
+                                desde o início do acompanhamento
+                            </small>
+
+                        </article>
+
+
+                        <article
+                            className="dashboard-stat-card"
+                        >
+
+                <span>
+                    Média diária
+                </span>
+
+
+                            <strong>
+
+                                {
+                                    formatStudyTime(
+                                        studyTime
+                                            .averageDaily
+                                            .seconds
+                                    )
+                                }
+
+                            </strong>
+
+
+                            <small>
+                                média desta semana
+                            </small>
+
+                        </article>
+
+
+                        <article
+                            className="dashboard-stat-card"
+                        >
+
+                <span>
+                    Melhor dia
+                </span>
+
+
+                            <strong>
+
+                                {
+                                    formatStudyTime(
+                                        studyTime
+                                            .bestDay
+                                            .seconds
+                                    )
+                                }
+
+                            </strong>
+
+
+                            <small>
+
+                                {
+                                    formatBestDay(
+                                        studyTime
+                                            .bestDay
+                                            .date
+                                    )
+                                }
+
+                            </small>
+
+                        </article>
+
+                    </section>
+
+                )
+            }
+
+            {
+                /* =========================
+                    gráfico
+            ========================== */
+                studyTime && (
+
+                    <StudyTimeChart
+                        days={
+                            studyTime.weekDays
+                        }
+                    />
+
+                )
+            }
+
         </div>
 
     );
+
+
 
 }

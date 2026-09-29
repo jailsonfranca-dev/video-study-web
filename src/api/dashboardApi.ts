@@ -10,9 +10,13 @@ import type {
     CalendarActivity,
     ContinueStudying,
     DriveSyncResponse,
-    UpdateWeeklyGoalResponse
+    UpdateWeeklyGoalResponse,
+    RecentActivityResponse,
+    StudyTimeMetrics
 
 } from '../types/dashboard';
+
+
 
 
 export function getDashboardSummary(
@@ -114,6 +118,32 @@ export function updateWeeklyGoal(
                 JSON.stringify({
                     target
                 })
+        }
+    );
+
+}
+
+export function getRecentActivity(
+    signal?: AbortSignal
+) {
+
+    return apiFetch<RecentActivityResponse>(
+        '/dashboard/recent-activity',
+        {
+            signal
+        }
+    );
+
+}
+
+export function getStudyTime(
+    signal?: AbortSignal
+) {
+
+    return apiFetch<StudyTimeMetrics>(
+        '/dashboard/study-time',
+        {
+            signal
         }
     );
 

@@ -8,6 +8,11 @@ import type {
 } from '../../types/dashboard';
 
 
+import {
+    formatVideoName
+} from '../../utils/formatVideoName';
+
+
 interface ContinueStudyingProps {
 
     videos:
@@ -16,9 +21,7 @@ interface ContinueStudyingProps {
 }
 
 
-export function ContinueStudying({
-                                     videos
-                                 }: ContinueStudyingProps) {
+export function ContinueStudying({videos}: ContinueStudyingProps) {
 
     return (
 
@@ -69,20 +72,55 @@ export function ContinueStudying({
 
                                             <div className="continue-info">
 
-                                                <strong>
+                                                {
+                                                    video.folderName && (
+
+                                                        <div className="continue-folder">
+
+                                                            <span className="continue-folder-icon">
+                                                                📁
+                                                            </span>
+
+                                                            <span>
+
+                                                                {
+                                                                    video.folderName
+                                                                }
+
+                                                            </span>
+
+                                                        </div>
+
+                                                    )
+                                                }
+
+
+                                                <strong className="continue-video-name">
 
                                                     {
-                                                        video.name
+                                                        formatVideoName(
+                                                            video.name
+                                                        )
                                                     }
 
                                                 </strong>
 
 
-                                                <span>
+                                                <span className="continue-percentage">
 
                                                     {
-                                                        video.progressPercent
+                                                        Number(
+                                                            video.progressPercent
+                                                        )
+                                                            .toFixed(
+                                                                1
+                                                            )
+                                                            .replace(
+                                                                '.0',
+                                                                ''
+                                                            )
                                                     }
+
                                                     %
 
                                                 </span>
@@ -94,11 +132,13 @@ export function ContinueStudying({
 
                                                 <div
                                                     style={{
+
                                                         width:
                                                             `${Math.min(
                                                                 video.progressPercent,
                                                                 100
                                                             )}%`
+
                                                     }}
                                                 />
 
@@ -109,6 +149,7 @@ export function ContinueStudying({
                                                 to={
                                                     `/watch/${video.id}`
                                                 }
+                                                className="continue-button"
                                             >
 
                                                 Continuar ▶

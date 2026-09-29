@@ -1,6 +1,11 @@
 import {
     useEffect,
+    useRef,
     useState
+} from 'react';
+
+import type {
+    CSSProperties
 } from 'react';
 
 import {
@@ -14,12 +19,26 @@ import {
 } from '../api/libraryApi';
 
 import {
+    getVideoProgress,
+    markVideoCompleted,
+    markVideoIncomplete
+} from '../api/progressApi';
+
+import {
     PlaylistItem
 } from '../components/PlaylistItem';
 
 import {
     VideoPlayer
 } from '../components/VideoPlayer';
+
+import {
+    Breadcrumbs
+} from '../components/Breadcrumbs';
+
+import {
+    StudyMaterialPanel
+} from '../components/study/StudyMaterialPanel';
 
 import type {
     FolderContents,
@@ -29,22 +48,12 @@ import type {
 } from '../types/library';
 
 import {
-    getVideoProgress,
-    markVideoCompleted,
-    markVideoIncomplete
-} from '../api/progressApi';
-
-import {
-    Breadcrumbs
-} from '../components/Breadcrumbs';
-
-import {
     formatVideoName
 } from '../utils/formatVideoName';
 
 import {
-    StudyMaterialPanel
-} from '../components/study/StudyMaterialPanel';
+    useStudyTimeTracker
+} from '../hooks/useStudyTimeTracker';
 
 
 function formatDuration(
@@ -52,9 +61,7 @@ function formatDuration(
 ) {
 
     if (!seconds) {
-
         return '--:--';
-
     }
 
 
@@ -111,10 +118,17 @@ function formatDuration(
             '0'
         )
     );
+
 }
 
 
 export function WatchPage() {
+
+    /*
+     * =====================================
+     * ROUTER
+     * =====================================
+     */
 
     const {
         videoId
@@ -123,27 +137,69 @@ export function WatchPage() {
             videoId: string;
         }>();
 
-    const [
-        progress,
-        setProgress
-    ] = useState<VideoProgress | null>(
-        null
-    );
-
-
-
 
     const navigate =
         useNavigate();
+
+
+    /*
+     * =====================================
+     * REF DO PLAYER
+     * =====================================
+     *
+     * Esse é o ÚNICO ref do elemento
+     * <video>.
+     *
+     * Ele será compartilhado entre:
+     *
+     * - VideoPlayer
+     * - autosave do progresso
+     * - retomada da posição
+     * - contador de tempo estudado
+     */
+
+    const videoRef =
+        useRef<HTMLVideoElement>(
+            null
+        );
+
+
+    /*
+     * =====================================
+     * IA10.7.3
+     * TEMPO REAL DE ESTUDO
+     * =====================================
+     */
+
+    useStudyTimeTracker({
+
+        videoId,
+
+        videoRef
+
+    });
+
+
+    /*
+     * =====================================
+     * STATES
+     * =====================================
+     */
+
+    const [
+        progress,
+        setProgress
+    ] =
+        useState<VideoProgress | null>(
+            null
+        );
 
 
     const [
         video,
         setVideo
     ] =
-        useState<
-            VideoDetails | null
-        >(
+        useState<VideoDetails | null>(
             null
         );
 
@@ -152,9 +208,7 @@ export function WatchPage() {
         folder,
         setFolder
     ] =
-        useState<
-            FolderContents | null
-        >(
+        useState<FolderContents | null>(
             null
         );
 
@@ -172,17 +226,27 @@ export function WatchPage() {
         error,
         setError
     ] =
-        useState('');
+        useState(
+            ''
+        );
 
+
+    /*
+     * =====================================
+     * CARREGAR PÁGINA
+     * =====================================
+     */
 
     useEffect(
         () => {
 
             if (!videoId) {
-
                 return;
-
             }
+
+
+            const currentVideoId =
+                videoId;
 
 
             const controller =
@@ -197,6 +261,7 @@ export function WatchPage() {
                         true
                     );
 
+
                     setError(
                         ''
                     );
@@ -204,23 +269,20 @@ export function WatchPage() {
 
                     /*
                      * Primeiro descobrimos
-                     * a pasta do vídeo.
+                     * os dados do vídeo.
                      */
+
                     const videoResult =
                         await getVideoById(
-                            videoId!,
+                            currentVideoId,
                             controller.signal
                         );
 
 
                     if (
-                        controller
-                            .signal
-                            .aborted
+                        controller.signal.aborted
                     ) {
-
                         return;
-
                     }
 
 
@@ -230,10 +292,12 @@ export function WatchPage() {
 
 
                     /*
-                     * Depois carregamos todos
-                     * os vídeos daquela pasta
-                     * para montar a playlist.
+                     * Depois carregamos:
+                     *
+                     * - conteúdo da pasta
+                     * - progresso do vídeo
                      */
+
                     const [
                         folderResult,
                         progressResult
@@ -246,11 +310,18 @@ export function WatchPage() {
                             ),
 
                             getVideoProgress(
-                                videoId!,
+                                currentVideoId,
                                 controller.signal
                             )
 
                         ]);
+
+
+                    if (
+                        controller.signal.aborted
+                    ) {
+                        return;
+                    }
 
 
                     setFolder(
@@ -263,17 +334,6 @@ export function WatchPage() {
                     );
 
 
-                    if (
-                        controller
-                            .signal
-                            .aborted
-                    ) {
-
-                        return;
-
-                    }
-
-
                 } catch (error) {
 
                     if (
@@ -281,9 +341,7 @@ export function WatchPage() {
                         error.name ===
                         'AbortError'
                     ) {
-
                         return;
-
                     }
 
 
@@ -307,9 +365,7 @@ export function WatchPage() {
                 } finally {
 
                     if (
-                        !controller
-                            .signal
-                            .aborted
+                        !controller.signal.aborted
                     ) {
 
                         setLoading(
@@ -323,7 +379,7 @@ export function WatchPage() {
             }
 
 
-            loadWatchPage();
+            void loadWatchPage();
 
 
             return () => {
@@ -333,33 +389,42 @@ export function WatchPage() {
             };
 
         },
-        [videoId]
+        [
+            videoId
+        ]
     );
+
+
+    /*
+     * =====================================
+     * ATUALIZAR PROGRESSO
+     * =====================================
+     */
 
     function handleProgressChange(
         updatedProgress: VideoProgress
     ) {
 
         /*
-         * Atualiza informações abaixo
-         * do player.
+         * Atualiza informações
+         * abaixo do player.
          */
+
         setProgress(
             updatedProgress
         );
 
 
         /*
-         * Atualiza também o vídeo
-         * na playlist.
+         * Atualiza o vídeo também
+         * dentro da playlist.
          */
+
         setFolder(
             current => {
 
                 if (!current) {
-
                     return current;
-
                 }
 
 
@@ -375,9 +440,7 @@ export function WatchPage() {
                                     item.id !==
                                     videoId
                                 ) {
-
                                     return item;
-
                                 }
 
 
@@ -397,7 +460,15 @@ export function WatchPage() {
 
             }
         );
+
     }
+
+
+    /*
+     * =====================================
+     * DURAÇÃO DO VÍDEO
+     * =====================================
+     */
 
     function handleDurationChange(
         durationSeconds: number
@@ -407,9 +478,7 @@ export function WatchPage() {
             current => {
 
                 if (!current) {
-
                     return current;
-
                 }
 
 
@@ -429,9 +498,7 @@ export function WatchPage() {
             current => {
 
                 if (!current) {
-
                     return current;
-
                 }
 
 
@@ -447,9 +514,7 @@ export function WatchPage() {
                                     item.id !==
                                     videoId
                                 ) {
-
                                     return item;
-
                                 }
 
 
@@ -468,7 +533,15 @@ export function WatchPage() {
 
             }
         );
+
     }
+
+
+    /*
+     * =====================================
+     * MARCAR / DESMARCAR CONCLUÍDO
+     * =====================================
+     */
 
     async function handleToggleCompleted(
         selectedVideo: Video
@@ -491,15 +564,14 @@ export function WatchPage() {
 
 
             /*
-             * Atualiza a playlist.
+             * Atualiza playlist.
              */
+
             setFolder(
                 current => {
 
                     if (!current) {
-
                         return current;
-
                     }
 
 
@@ -515,9 +587,7 @@ export function WatchPage() {
                                         item.id !==
                                         selectedVideo.id
                                     ) {
-
                                         return item;
-
                                     }
 
 
@@ -540,10 +610,10 @@ export function WatchPage() {
 
 
             /*
-             * Se o checkbox alterado
-             * pertence ao vídeo atual,
+             * Se for o vídeo atual,
              * atualiza também o player.
              */
+
             if (
                 selectedVideo.id ===
                 videoId
@@ -564,76 +634,15 @@ export function WatchPage() {
             );
 
         }
-    }
 
-    function handlePreviousVideo() {
-
-        if (!previousVideo) {
-            return;
-        }
-
-
-        navigate(
-            `/watch/${previousVideo.id}`
-        );
-    }
-
-    //*****************playlistProgress*************************
-    const totalVideos =
-        folder?.videos.length ?? 0;
-
-
-    const completedVideos =
-        folder?.videos.filter(
-            item =>
-                item.progress.completed
-        ).length ?? 0;
-
-
-    const playlistProgress =
-        totalVideos > 0
-            ? (
-            completedVideos /
-            totalVideos
-        ) * 100
-            : 0;
-    //******************************************
-
-    const playlistCompleted =
-        totalVideos > 0 &&
-        completedVideos === totalVideos;
-    function handleNextVideo() {
-
-        if (!nextVideo) {
-            return;
-        }
-
-
-        navigate(
-            `/watch/${nextVideo.id}`
-        );
     }
 
 
-    function handleSelectVideo(
-        selectedVideo: Video
-    ) {
-
-        if (
-            selectedVideo.id ===
-            videoId
-        ) {
-
-            return;
-
-        }
-
-
-        navigate(
-            `/watch/${selectedVideo.id}`
-        );
-    }
-
+    /*
+     * =====================================
+     * LOADING
+     * =====================================
+     */
 
     if (loading) {
 
@@ -651,6 +660,7 @@ export function WatchPage() {
                         className="loading-spinner"
                     />
 
+
                     <p>
                         Carregando vídeo...
                     </p>
@@ -660,12 +670,20 @@ export function WatchPage() {
             </main>
 
         );
+
     }
 
 
+    /*
+     * =====================================
+     * ERRO
+     * =====================================
+     */
+
     if (
         error ||
-        !video
+        !video ||
+        !videoId
     ) {
 
         return (
@@ -675,15 +693,22 @@ export function WatchPage() {
             >
 
                 <button
+
+                    type="button"
+
                     className="back-button"
+
                     onClick={
                         () =>
                             navigate(
                                 '/library'
                             )
                     }
+
                 >
+
                     ← Biblioteca
+
                 </button>
 
 
@@ -695,11 +720,14 @@ export function WatchPage() {
                         Não foi possível carregar o vídeo.
                     </strong>
 
+
                     {
                         error && (
+
                             <p>
                                 {error}
                             </p>
+
                         )
                     }
 
@@ -712,45 +740,158 @@ export function WatchPage() {
     }
 
 
+    /*
+     * =====================================
+     * VÍDEO ATUAL
+     * =====================================
+     */
+
     const currentVideo =
         folder?.videos.find(
             item =>
                 item.id ===
                 video.id
         );
-    //*****************************************
+
+
+    /*
+     * =====================================
+     * POSIÇÃO NA PLAYLIST
+     * =====================================
+     */
+
     const currentVideoIndex =
         folder
+
             ? folder.videos.findIndex(
                 item =>
-                    item.id === video.id
+                    item.id ===
+                    video.id
             )
+
             : -1;
 
 
     const previousVideo =
+
         currentVideoIndex > 0 &&
         folder
+
             ? folder.videos[
             currentVideoIndex - 1
                 ]
+
             : null;
 
 
     const nextVideo =
+
         folder &&
         currentVideoIndex >= 0 &&
         currentVideoIndex <
         folder.videos.length - 1
+
             ? folder.videos[
             currentVideoIndex + 1
                 ]
+
             : null;
-    //****************************************
 
 
+    /*
+     * =====================================
+     * PROGRESSO DA PLAYLIST
+     * =====================================
+     */
+
+    const totalVideos =
+        folder?.videos.length ??
+        0;
 
 
+    const completedVideos =
+        folder?.videos.filter(
+            item =>
+                item.progress.completed
+        ).length ??
+        0;
+
+
+    const playlistProgress =
+        totalVideos > 0
+
+            ? (
+            completedVideos /
+            totalVideos
+        ) * 100
+
+            : 0;
+
+
+    const playlistCompleted =
+        totalVideos > 0 &&
+        completedVideos ===
+        totalVideos;
+
+
+    /*
+     * =====================================
+     * NAVEGAÇÃO
+     * =====================================
+     */
+
+    function handlePreviousVideo() {
+
+        if (!previousVideo) {
+            return;
+        }
+
+
+        navigate(
+            `/watch/${previousVideo.id}`
+        );
+
+    }
+
+
+    function handleNextVideo() {
+
+        if (!nextVideo) {
+            return;
+        }
+
+
+        navigate(
+            `/watch/${nextVideo.id}`
+        );
+
+    }
+
+
+    function handleSelectVideo(
+        selectedVideo: Video
+    ) {
+
+        if (
+            selectedVideo.id ===
+            videoId
+        ) {
+            return;
+        }
+
+
+        navigate(
+            `/watch/${selectedVideo.id}`
+        );
+
+    }
+
+
+    /*
+     * =====================================
+     * RENDER
+     * =====================================
+     */
 
     return (
 
@@ -759,7 +900,9 @@ export function WatchPage() {
         >
 
             <Breadcrumbs
+
                 items={[
+
                     {
                         label:
                             'Biblioteca',
@@ -782,7 +925,9 @@ export function WatchPage() {
                                 video.name
                             )
                     }
+
                 ]}
+
             />
 
 
@@ -798,12 +943,31 @@ export function WatchPage() {
                         progress && (
 
                             <VideoPlayer
+
+                                /*
+                                 * IMPORTANTE:
+                                 *
+                                 * quando video.id muda,
+                                 * React recria o player.
+                                 */
+                                key={
+                                    video.id
+                                }
+
                                 video={
                                     video
                                 }
 
                                 progress={
                                     progress
+                                }
+
+                                /*
+                                 * Mesmo ref usado pelo
+                                 * useStudyTimeTracker.
+                                 */
+                                videoRef={
+                                    videoRef
                                 }
 
                                 onProgressChange={
@@ -813,6 +977,7 @@ export function WatchPage() {
                                 onDurationChange={
                                     handleDurationChange
                                 }
+
                             />
 
                         )
@@ -825,7 +990,9 @@ export function WatchPage() {
 
                         <h1>
                             {
-                                video.name
+                                formatVideoName(
+                                    video.name
+                                )
                             }
                         </h1>
 
@@ -835,11 +1002,13 @@ export function WatchPage() {
                         >
 
                             <span>
+
                                 {
                                     formatDuration(
                                         video.durationSeconds
                                     )
                                 }
+
                             </span>
 
 
@@ -847,11 +1016,14 @@ export function WatchPage() {
                                 currentVideo && (
 
                                     <>
+
                                         <span>
                                             •
                                         </span>
 
+
                                         <span>
+
                                             {
                                                 currentVideo
                                                     .progress
@@ -859,8 +1031,12 @@ export function WatchPage() {
                                                     .toFixed(
                                                         1
                                                     )
-                                            }%
+                                            }
+
+                                            %
+
                                         </span>
+
                                     </>
 
                                 )
@@ -875,7 +1051,9 @@ export function WatchPage() {
                                     <span
                                         className="watch-completed"
                                     >
+
                                         ✓ Assistido
+
                                     </span>
 
                                 )
@@ -892,8 +1070,11 @@ export function WatchPage() {
                                 >
 
                                     <div
+
                                         className="watch-progress-fill"
+
                                         style={{
+
                                             width:
                                                 `${Math.min(
                                                     currentVideo
@@ -901,7 +1082,9 @@ export function WatchPage() {
                                                         .percentage,
                                                     100
                                                 )}%`
+
                                         }}
+
                                     />
 
                                 </div>
@@ -911,88 +1094,133 @@ export function WatchPage() {
 
                     </div>
 
-                    <div className="watch-navigation">
+
+                    {/*
+                     * =================================
+                     * ANTERIOR / PRÓXIMO
+                     * =================================
+                     */}
+
+                    <div
+                        className="watch-navigation"
+                    >
 
                         <button
+
                             type="button"
+
                             className="video-navigation-button"
+
                             disabled={
                                 !previousVideo
                             }
+
                             onClick={
                                 handlePreviousVideo
                             }
+
                         >
 
-        <span>
-            ←
-        </span>
+                            <span>
+                                ←
+                            </span>
+
 
                             <div>
+
                                 <small>
                                     Anterior
                                 </small>
 
+
                                 <strong>
+
                                     {
                                         previousVideo
+
                                             ? formatVideoName(
                                                 previousVideo.name
                                             )
+
                                             : 'Nenhum'
                                     }
+
                                 </strong>
+
                             </div>
 
                         </button>
 
 
                         <button
+
                             type="button"
+
                             className="video-navigation-button next"
+
                             disabled={
                                 !nextVideo
                             }
+
                             onClick={
                                 handleNextVideo
                             }
+
                         >
 
                             <div>
+
                                 <small>
                                     Próximo
                                 </small>
 
+
                                 <strong>
+
                                     {
                                         nextVideo
+
                                             ? formatVideoName(
                                                 nextVideo.name
                                             )
+
                                             : 'Nenhum'
                                     }
+
                                 </strong>
+
                             </div>
 
+
                             <span>
-            →
-        </span>
+                                →
+                            </span>
 
                         </button>
 
                     </div>
 
-                    {videoId && (
-                        <StudyMaterialPanel
-                            videoId={videoId}
-                        />
-                    )}
 
+                    {/*
+                     * =================================
+                     * MATERIAL GERADO POR IA
+                     * =================================
+                     */}
 
-
+                    <StudyMaterialPanel
+                        videoId={
+                            videoId
+                        }
+                    />
 
                 </section>
 
+
+                {/*
+                 * =====================================
+                 * PLAYLIST
+                 * =====================================
+                 */}
 
                 <aside
                     className="playlist-panel"
@@ -1008,18 +1236,22 @@ export function WatchPage() {
                                 Playlist
                             </h2>
 
+
                             <p>
+
                                 {
                                     folder
                                         ?.folder
                                         .name
                                 }
+
                             </p>
 
                         </div>
 
 
                         <div
+
                             className={
                                 `playlist-progress-circle ${
                                     playlistCompleted
@@ -1027,28 +1259,45 @@ export function WatchPage() {
                                         : ''
                                 }`
                             }
+
                             style={{
+
                                 '--playlist-progress':
                                     `${playlistProgress * 3.6}deg`
-                            } as React.CSSProperties}
-                        >
 
+                            } as CSSProperties}
+
+                        >
 
                             <div
                                 className="playlist-progress-inner"
                             >
 
                                 <strong>
+
                                     {
                                         Math.round(
                                             playlistProgress
                                         )
-                                    }%
+                                    }
+
+                                    %
+
                                 </strong>
 
 
                                 <span>
-                                    {completedVideos}/{totalVideos}
+
+                                    {
+                                        completedVideos
+                                    }
+
+                                    /
+
+                                    {
+                                        totalVideos
+                                    }
+
                                 </span>
 
                             </div>
@@ -1069,6 +1318,7 @@ export function WatchPage() {
                                     item => (
 
                                         <PlaylistItem
+
                                             key={
                                                 item.id
                                             }
@@ -1089,6 +1339,7 @@ export function WatchPage() {
                                             onToggleCompleted={
                                                 handleToggleCompleted
                                             }
+
                                         />
 
                                     )
@@ -1104,5 +1355,5 @@ export function WatchPage() {
         </main>
 
     );
-}
 
+}

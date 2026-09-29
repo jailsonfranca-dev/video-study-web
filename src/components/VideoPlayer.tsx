@@ -5,6 +5,10 @@ import {
     useState
 } from 'react';
 
+import type {
+    RefObject
+} from 'react';
+
 import {
     updateVideoDuration
 } from '../api/libraryApi';
@@ -21,48 +25,51 @@ import type {
 
 interface VideoPlayerProps {
 
-    video:
-        VideoDetails;
+    video: VideoDetails;
 
-    progress:
-        VideoProgress;
+    progress: VideoProgress;
 
-    onProgressChange:
-        (
-            progress: VideoProgress
-        ) => void;
+    onProgressChange: (
+        progress: VideoProgress
+    ) => void;
 
-    onDurationChange?:
-        (
-            durationSeconds: number
-        ) => void;
+    onDurationChange: (
+        durationSeconds: number
+    ) => void;
+
+    videoRef:
+        RefObject<HTMLVideoElement | null>;
 }
 
 
 export function VideoPlayer({
-                                video,
-                                progress,
-                                onProgressChange,
-                                onDurationChange
-                            }: VideoPlayerProps) {
 
-    const playerRef =
-        useRef<HTMLVideoElement | null>(
-            null
-        );
+                                video,
+
+                                progress,
+
+                                onProgressChange,
+
+                                onDurationChange,
+
+                                videoRef
+
+                            }: VideoPlayerProps) {
 
 
     /*
      * Impede aplicar a retomada
-     * várias vezes.
+     * mais de uma vez.
      */
     const resumedRef =
-        useRef(false);
+        useRef(
+            false
+        );
 
 
     /*
-     * Evita enviar o mesmo segundo
-     * repetidamente.
+     * Evita salvar exatamente
+     * o mesmo segundo várias vezes.
      */
     const lastSavedSecondRef =
         useRef<number | null>(
@@ -71,72 +78,53 @@ export function VideoPlayer({
 
 
     /*
-     * Evita vários PATCH simultâneos.
+     * Evita vários PATCH
+     * simultâneos.
      */
     const savingRef =
-        useRef(false);
+        useRef(
+            false
+        );
 
 
     const [
         loading,
         setLoading
     ] =
-        useState(true);
+        useState(
+            true
+        );
 
 
     const [
         error,
         setError
     ] =
-        useState(false);
+        useState(
+            false
+        );
 
 
     const [
         resumeMessage,
         setResumeMessage
     ] =
-        useState('');
+        useState(
+            ''
+        );
 
 
     /*
-     * Sempre que trocar de vídeo
-     * reiniciamos os controles.
+     * =====================================
+     * SALVAR PROGRESSO ATUAL
+     * =====================================
      */
-    useEffect(
-        () => {
-
-            resumedRef.current =
-                false;
-
-            lastSavedSecondRef.current =
-                null;
-
-            savingRef.current =
-                false;
-
-            setLoading(
-                true
-            );
-
-            setError(
-                false
-            );
-
-            setResumeMessage(
-                ''
-            );
-
-        },
-        [video.id]
-    );
-
-
     const saveCurrentProgress =
         useCallback(
             async () => {
 
                 const player =
-                    playerRef.current;
+                    videoRef.current;
 
 
                 if (!player) {
@@ -155,7 +143,8 @@ export function VideoPlayer({
                 if (
                     !Number.isFinite(
                         currentTimeSeconds
-                    ) ||
+                    )
+                    ||
                     currentTimeSeconds < 0
                 ) {
 
@@ -178,6 +167,10 @@ export function VideoPlayer({
                 }
 
 
+                /*
+                 * Já existe uma requisição
+                 * de progresso em andamento.
+                 */
                 if (
                     savingRef.current
                 ) {
@@ -233,16 +226,20 @@ export function VideoPlayer({
             },
             [
                 video.id,
-                onProgressChange
+                onProgressChange,
+                videoRef
             ]
         );
 
 
     /*
-     * AUTOSAVE:
+     * =====================================
+     * AUTOSAVE
+     * =====================================
      *
-     * salva a cada 10 segundos
-     * enquanto estiver reproduzindo.
+     * Salva a posição a cada
+     * 10 segundos enquanto
+     * o vídeo estiver tocando.
      */
     useEffect(
         () => {
@@ -252,7 +249,7 @@ export function VideoPlayer({
                     () => {
 
                         const player =
-                            playerRef.current;
+                            videoRef.current;
 
 
                         if (!player) {
@@ -267,7 +264,7 @@ export function VideoPlayer({
                             !player.ended
                         ) {
 
-                            saveCurrentProgress();
+                            void saveCurrentProgress();
 
                         }
 
@@ -286,15 +283,21 @@ export function VideoPlayer({
 
         },
         [
-            saveCurrentProgress
+            saveCurrentProgress,
+            videoRef
         ]
     );
 
 
+    /*
+     * =====================================
+     * METADADOS DO VÍDEO
+     * =====================================
+     */
     async function handleLoadedMetadata() {
 
         const player =
-            playerRef.current;
+            videoRef.current;
 
 
         if (!player) {
@@ -319,7 +322,6 @@ export function VideoPlayer({
          * DESCOBRIR DURAÇÃO
          * =================================
          */
-
         const detectedDuration =
             Math.round(
                 player.duration
@@ -342,7 +344,7 @@ export function VideoPlayer({
                 );
 
 
-                onDurationChange?.(
+                onDurationChange(
                     detectedDuration
                 );
 
@@ -370,7 +372,6 @@ export function VideoPlayer({
          * RETOMAR POSIÇÃO
          * =================================
          */
-
         if (
             resumedRef.current
         ) {
@@ -392,6 +393,9 @@ export function VideoPlayer({
             );
 
 
+        /*
+         * Não existe posição anterior.
+         */
         if (
             savedTime <= 0
         ) {
@@ -417,12 +421,14 @@ export function VideoPlayer({
 
             resumeTime =
                 Math.min(
+
                     savedTime,
 
                     Math.max(
                         player.duration - 1,
                         0
                     )
+
                 );
 
         }
@@ -445,17 +451,26 @@ export function VideoPlayer({
 
 
         setResumeMessage(
+
             `Retomando em ${minutes}:` +
-            String(seconds)
-                .padStart(
-                    2,
-                    '0'
-                )
+
+            String(
+                seconds
+            ).padStart(
+                2,
+                '0'
+            )
+
         );
 
     }
 
 
+    /*
+     * =====================================
+     * PLAYER
+     * =====================================
+     */
     return (
 
         <>
@@ -465,12 +480,9 @@ export function VideoPlayer({
             >
 
                 <video
-                    key={
-                        video.id
-                    }
 
                     ref={
-                        playerRef
+                        videoRef
                     }
 
                     className="video-player"
@@ -482,28 +494,41 @@ export function VideoPlayer({
                     playsInline
 
                     onLoadedMetadata={
-                        handleLoadedMetadata
+                        () => {
+
+                            void handleLoadedMetadata();
+
+                        }
                     }
 
                     onCanPlay={
-                        () =>
+                        () => {
+
                             setLoading(
                                 false
-                            )
+                            );
+
+                        }
                     }
 
                     onWaiting={
-                        () =>
+                        () => {
+
                             setLoading(
                                 true
-                            )
+                            );
+
+                        }
                     }
 
                     onPlaying={
-                        () =>
+                        () => {
+
                             setLoading(
                                 false
-                            )
+                            );
+
+                        }
                     }
 
                     /*
@@ -511,14 +536,23 @@ export function VideoPlayer({
                      * quando o usuário pausa.
                      */
                     onPause={
-                        saveCurrentProgress
+                        () => {
+
+                            void saveCurrentProgress();
+
+                        }
                     }
 
                     /*
-                     * Salva no final também.
+                     * Salva também quando
+                     * o vídeo termina.
                      */
                     onEnded={
-                        saveCurrentProgress
+                        () => {
+
+                            void saveCurrentProgress();
+
+                        }
                     }
 
                     onError={
@@ -527,6 +561,7 @@ export function VideoPlayer({
                             setLoading(
                                 false
                             );
+
 
                             setError(
                                 true
@@ -537,6 +572,7 @@ export function VideoPlayer({
                 >
 
                     <source
+
                         src={
                             `/library/videos/${video.id}/stream`
                         }
@@ -545,7 +581,9 @@ export function VideoPlayer({
                             video.mimeType ||
                             'video/mp4'
                         }
+
                     />
+
 
                     Seu navegador não suporta reprodução de vídeo.
 
@@ -563,6 +601,7 @@ export function VideoPlayer({
                             <div
                                 className="loading-spinner"
                             />
+
 
                             <span>
                                 Carregando vídeo...
@@ -597,7 +636,11 @@ export function VideoPlayer({
                     <div
                         className="resume-message"
                     >
-                        {resumeMessage}
+
+                        {
+                            resumeMessage
+                        }
+
                     </div>
 
                 )
@@ -606,4 +649,5 @@ export function VideoPlayer({
         </>
 
     );
+
 }
