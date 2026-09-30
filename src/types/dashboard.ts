@@ -295,4 +295,47 @@ export interface StudyTimeWeeklyGoal {
     achieved: boolean;
 }
 
+export interface StudySessionItem {
+
+    id: string;
+
+    videoId: string;
+
+    videoName: string;
+
+    folderId:
+        string | null;
+
+    folderName:
+        string | null;
+
+    studyDate: string;
+
+    startedAt: string;
+
+    endedAt:
+        string | null;
+
+    watchedSeconds: number;
+
+    startPositionSeconds:
+        number | null;
+
+    endPositionSeconds:
+        number | null;
+
+    status:
+        'active' |
+        'completed';
+
+}
+
+
+export interface StudySessionsResponse {
+
+    sessions:
+        StudySessionItem[];
+
+}
+
 

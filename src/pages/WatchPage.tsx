@@ -147,37 +147,22 @@ export function WatchPage() {
      * REF DO PLAYER
      * =====================================
      *
-     * Esse é o ÚNICO ref do elemento
+     * Esse é o único ref do elemento
      * <video>.
      *
-     * Ele será compartilhado entre:
+     * Compartilhado entre:
      *
      * - VideoPlayer
      * - autosave do progresso
      * - retomada da posição
      * - contador de tempo estudado
+     * - sessões de estudo
      */
 
     const videoRef =
         useRef<HTMLVideoElement>(
             null
         );
-
-
-    /*
-     * =====================================
-     * IA10.7.3
-     * TEMPO REAL DE ESTUDO
-     * =====================================
-     */
-
-    useStudyTimeTracker({
-
-        videoId,
-
-        videoRef
-
-    });
 
 
     /*
@@ -233,6 +218,41 @@ export function WatchPage() {
 
     /*
      * =====================================
+     * IA10.9.3
+     * TRACKER DE SESSÕES DE ESTUDO
+     * =====================================
+     *
+     * Só ativamos quando:
+     *
+     * - o carregamento terminou
+     * - temos os dados do vídeo
+     * - temos o progresso
+     *
+     * Nesse momento o VideoPlayer também
+     * será renderizado e videoRef.current
+     * poderá apontar para o <video>.
+     */
+
+    useStudyTimeTracker({
+
+        videoId,
+
+        videoRef,
+
+        enabled:
+            !loading &&
+            Boolean(
+                video
+            ) &&
+            Boolean(
+                progress
+            )
+
+    });
+
+
+    /*
+     * =====================================
      * CARREGAR PÁGINA
      * =====================================
      */
@@ -268,7 +288,7 @@ export function WatchPage() {
 
 
                     /*
-                     * Primeiro descobrimos
+                     * Primeiro buscamos
                      * os dados do vídeo.
                      */
 
@@ -282,7 +302,9 @@ export function WatchPage() {
                     if (
                         controller.signal.aborted
                     ) {
+
                         return;
+
                     }
 
 
@@ -295,7 +317,7 @@ export function WatchPage() {
                      * Depois carregamos:
                      *
                      * - conteúdo da pasta
-                     * - progresso do vídeo
+                     * - progresso atual
                      */
 
                     const [
@@ -320,7 +342,9 @@ export function WatchPage() {
                     if (
                         controller.signal.aborted
                     ) {
+
                         return;
+
                     }
 
 
@@ -341,7 +365,9 @@ export function WatchPage() {
                         error.name ===
                         'AbortError'
                     ) {
+
                         return;
+
                     }
 
 
@@ -406,8 +432,8 @@ export function WatchPage() {
     ) {
 
         /*
-         * Atualiza informações
-         * abaixo do player.
+         * Atualiza os dados abaixo
+         * do player.
          */
 
         setProgress(
@@ -416,15 +442,17 @@ export function WatchPage() {
 
 
         /*
-         * Atualiza o vídeo também
-         * dentro da playlist.
+         * Atualiza também o vídeo
+         * correspondente na playlist.
          */
 
         setFolder(
             current => {
 
                 if (!current) {
+
                     return current;
+
                 }
 
 
@@ -440,7 +468,9 @@ export function WatchPage() {
                                     item.id !==
                                     videoId
                                 ) {
+
                                     return item;
+
                                 }
 
 
@@ -466,7 +496,7 @@ export function WatchPage() {
 
     /*
      * =====================================
-     * DURAÇÃO DO VÍDEO
+     * ATUALIZAR DURAÇÃO
      * =====================================
      */
 
@@ -478,7 +508,9 @@ export function WatchPage() {
             current => {
 
                 if (!current) {
+
                     return current;
+
                 }
 
 
@@ -498,7 +530,9 @@ export function WatchPage() {
             current => {
 
                 if (!current) {
+
                     return current;
+
                 }
 
 
@@ -514,7 +548,9 @@ export function WatchPage() {
                                     item.id !==
                                     videoId
                                 ) {
+
                                     return item;
+
                                 }
 
 
@@ -564,14 +600,16 @@ export function WatchPage() {
 
 
             /*
-             * Atualiza playlist.
+             * Atualiza a playlist.
              */
 
             setFolder(
                 current => {
 
                     if (!current) {
+
                         return current;
+
                     }
 
 
@@ -587,7 +625,9 @@ export function WatchPage() {
                                         item.id !==
                                         selectedVideo.id
                                     ) {
+
                                         return item;
+
                                     }
 
 
@@ -611,7 +651,8 @@ export function WatchPage() {
 
             /*
              * Se for o vídeo atual,
-             * atualiza também o player.
+             * atualiza também o estado
+             * principal do progresso.
              */
 
             if (
@@ -843,7 +884,9 @@ export function WatchPage() {
     function handlePreviousVideo() {
 
         if (!previousVideo) {
+
             return;
+
         }
 
 
@@ -857,7 +900,9 @@ export function WatchPage() {
     function handleNextVideo() {
 
         if (!nextVideo) {
+
             return;
+
         }
 
 
@@ -876,7 +921,9 @@ export function WatchPage() {
             selectedVideo.id ===
             videoId
         ) {
+
             return;
+
         }
 
 
@@ -945,9 +992,7 @@ export function WatchPage() {
                             <VideoPlayer
 
                                 /*
-                                 * IMPORTANTE:
-                                 *
-                                 * quando video.id muda,
+                                 * Quando video.id muda,
                                  * React recria o player.
                                  */
                                 key={
@@ -963,8 +1008,8 @@ export function WatchPage() {
                                 }
 
                                 /*
-                                 * Mesmo ref usado pelo
-                                 * useStudyTimeTracker.
+                                 * É o mesmo ref utilizado
+                                 * pelo useStudyTimeTracker.
                                  */
                                 videoRef={
                                     videoRef
@@ -984,16 +1029,24 @@ export function WatchPage() {
                     }
 
 
+                    {/*
+                     * =================================
+                     * INFORMAÇÕES DO VÍDEO
+                     * =================================
+                     */}
+
                     <div
                         className="watch-video-info"
                     >
 
                         <h1>
+
                             {
                                 formatVideoName(
                                     video.name
                                 )
                             }
+
                         </h1>
 
 

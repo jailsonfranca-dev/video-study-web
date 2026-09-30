@@ -13,7 +13,8 @@ import type {
     UpdateWeeklyGoalResponse,
     RecentActivityResponse,
     StudyTimeMetrics,
-    UpdateStudyTimeGoalResponse
+    UpdateStudyTimeGoalResponse,
+    StudySessionsResponse
 
 } from '../types/dashboard';
 
@@ -166,6 +167,29 @@ export function updateStudyTimeGoal(
                     targetMinutes
                 })
 
+        }
+    );
+
+}
+
+export function getStudySessions(
+    limit = 20,
+    signal?: AbortSignal
+) {
+
+    const params =
+        new URLSearchParams({
+            limit:
+                String(
+                    limit
+                )
+        });
+
+
+    return apiFetch<StudySessionsResponse>(
+        `/dashboard/study-sessions?${params.toString()}`,
+        {
+            signal
         }
     );
 

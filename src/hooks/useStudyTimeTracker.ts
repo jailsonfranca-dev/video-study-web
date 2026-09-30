@@ -3,15 +3,15 @@ import {
     useRef
 } from 'react';
 
-
 import type {
     RefObject
 } from 'react';
 
-
 import {
-    registerStudyTime
-} from '../api/studyTimeApi';
+    addStudySessionTime,
+    endStudySession,
+    startStudySession
+} from '../api/studySessionApi';
 
 
 const SEND_INTERVAL_SECONDS =
@@ -22,10 +22,6 @@ const SAMPLE_INTERVAL_MS =
     1000;
 
 
-/*
- * Proteção contra situações em que
- * o navegador congela/throttla timers.
- */
 const MAX_SAMPLE_SECONDS =
     2.5;
 
@@ -38,6 +34,9 @@ interface UseStudyTimeTrackerParams {
     videoRef:
         RefObject<HTMLVideoElement | null>;
 
+    enabled:
+        boolean;
+
 }
 
 
@@ -45,14 +44,51 @@ export function useStudyTimeTracker({
 
                                         videoId,
 
-                                        videoRef
+                                        videoRef,
+
+                                        enabled
 
                                     }: UseStudyTimeTrackerParams) {
 
+
     /*
-     * Segundos ainda não enviados
-     * ao backend.
+     * =====================================
+     * SESSÃO ATUAL
+     * =====================================
      */
+
+    const sessionIdRef =
+        useRef<string | null>(
+            null
+        );
+
+
+    /*
+     * Evita dois POST de criação
+     * simultâneos.
+     */
+    const startingSessionRef =
+        useRef<Promise<string | null> | null>(
+            null
+        );
+
+
+    /*
+     * Evita finalizar a mesma sessão
+     * duas vezes.
+     */
+    const endingSessionRef =
+        useRef(
+            false
+        );
+
+
+    /*
+     * =====================================
+     * TEMPO PENDENTE
+     * =====================================
+     */
+
     const pendingSecondsRef =
         useRef(
             0
@@ -60,39 +96,26 @@ export function useStudyTimeTracker({
 
 
     /*
-     * Evita duas requisições de
-     * heartbeat simultâneas.
+     * Requisição atual de heartbeat.
      */
-    const sendingRef =
-        useRef(
-            false
+    const sendingPromiseRef =
+        useRef<Promise<void> | null>(
+            null
         );
 
 
     /*
-     * Se houver pause/ended enquanto
-     * uma requisição estiver rodando,
-     * solicitamos um flush depois.
+     * =====================================
+     * AMOSTRAGEM DO PLAYER
+     * =====================================
      */
-    const forceFlushRequestedRef =
-        useRef(
-            false
-        );
 
-
-    /*
-     * Última posição conhecida
-     * do vídeo.
-     */
     const lastMediaTimeRef =
         useRef<number | null>(
             null
         );
 
 
-    /*
-     * Último instante real medido.
-     */
     const lastWallTimeRef =
         useRef<number | null>(
             null
@@ -102,7 +125,7 @@ export function useStudyTimeTracker({
     useEffect(
         () => {
 
-            if (!videoId) {
+            if (!videoId || !enabled) {
 
                 return;
 
@@ -118,19 +141,27 @@ export function useStudyTimeTracker({
 
 
             /*
-             * Começamos uma nova sessão
-             * para este vídeo.
+             * Reinicia dados referentes
+             * ao vídeo atual.
              */
+            sessionIdRef.current =
+                null;
+
+
+            startingSessionRef.current =
+                null;
+
+
+            endingSessionRef.current =
+                false;
+
+
             pendingSecondsRef.current =
                 0;
 
 
-            sendingRef.current =
-                false;
-
-
-            forceFlushRequestedRef.current =
-                false;
+            sendingPromiseRef.current =
+                null;
 
 
             lastMediaTimeRef.current =
@@ -140,6 +171,55 @@ export function useStudyTimeTracker({
             lastWallTimeRef.current =
                 null;
 
+
+            /*
+             * =================================
+             * POSIÇÃO ATUAL
+             * =================================
+             */
+
+            function getCurrentPosition() {
+
+                const video =
+                    videoRef.current;
+
+
+                if (!video) {
+
+                    return 0;
+
+                }
+
+
+                const position =
+                    Math.floor(
+                        video.currentTime
+                    );
+
+
+                if (
+                    !Number.isFinite(
+                        position
+                    )
+                    ||
+                    position < 0
+                ) {
+
+                    return 0;
+
+                }
+
+
+                return position;
+
+            }
+
+
+            /*
+             * =================================
+             * RESET DA AMOSTRAGEM
+             * =================================
+             */
 
             function resetSample() {
 
@@ -159,21 +239,156 @@ export function useStudyTimeTracker({
             }
 
 
-            async function flush(
+            /*
+             * =================================
+             * INICIAR SESSÃO
+             * =================================
+             */
+
+            async function ensureSession() {
+
+                if (
+                    sessionIdRef.current
+                ) {
+
+                    return sessionIdRef.current;
+
+                }
+
+
+                if (
+                    startingSessionRef.current
+                ) {
+
+                    return startingSessionRef.current;
+
+                }
+
+
+                const startPosition =
+                    getCurrentPosition();
+
+
+                const startPromise =
+                    (
+                        async () => {
+
+                            try {
+
+                                const result =
+                                    await startStudySession(
+
+                                        trackedVideoId,
+
+                                        startPosition
+
+                                    );
+
+
+                                const sessionId =
+                                    result
+                                        .session
+                                        .id;
+
+
+                                /*
+                                 * Se o componente tiver
+                                 * sido desmontado enquanto
+                                 * o POST estava em andamento,
+                                 * encerramos a sessão recém
+                                 * criada.
+                                 */
+                                if (disposed) {
+
+                                    void endStudySession(
+
+                                        sessionId,
+
+                                        getCurrentPosition(),
+
+                                        {
+                                            keepalive:
+                                                true
+                                        }
+
+                                    ).catch(
+                                        () => {
+                                            // best effort
+                                        }
+                                    );
+
+
+                                    return null;
+
+                                }
+
+
+                                sessionIdRef.current =
+                                    sessionId;
+
+
+                                return sessionId;
+
+
+                            } catch (error) {
+
+                                console.error(
+                                    'Erro ao iniciar sessão de estudo:',
+                                    error
+                                );
+
+
+                                return null;
+
+
+                            } finally {
+
+                                startingSessionRef.current =
+                                    null;
+
+                            }
+
+                        }
+                    )();
+
+
+                startingSessionRef.current =
+                    startPromise;
+
+
+                return startPromise;
+
+            }
+
+
+            /*
+             * =================================
+             * ENVIAR TEMPO PENDENTE
+             * =================================
+             */
+
+            async function flushPending(
                 force = false
             ) {
 
+                /*
+                 * Se já existe envio rodando,
+                 * aguardamos terminar.
+                 */
                 if (
-                    sendingRef.current
+                    sendingPromiseRef.current
                 ) {
 
-                    if (force) {
+                    await sendingPromiseRef.current;
 
-                        forceFlushRequestedRef.current =
-                            true;
+                }
 
-                    }
 
+                const sessionId =
+                    sessionIdRef.current;
+
+
+                if (!sessionId) {
 
                     return;
 
@@ -187,12 +402,8 @@ export function useStudyTimeTracker({
 
 
                 /*
-                 * Normal:
-                 * envia a cada 15 segundos.
-                 *
-                 * Force:
-                 * envia até mesmo 1 segundo
-                 * restante.
+                 * Heartbeat normal:
+                 * somente depois de 15s.
                  */
                 if (
                     !force &&
@@ -205,6 +416,10 @@ export function useStudyTimeTracker({
                 }
 
 
+                /*
+                 * Flush final:
+                 * envia até mesmo 1 segundo.
+                 */
                 if (
                     force &&
                     wholeSeconds < 1
@@ -225,6 +440,7 @@ export function useStudyTimeTracker({
                             wholeSeconds,
                             60
                         );
+
 
                 } else {
 
@@ -256,84 +472,110 @@ export function useStudyTimeTracker({
 
 
                 /*
-                 * Remove antes da chamada.
+                 * Remove antes da requisição.
                  *
-                 * Em caso de erro,
-                 * adicionamos novamente.
+                 * Se ela falhar, devolvemos
+                 * os segundos.
                  */
                 pendingSecondsRef.current -=
                     secondsToSend;
 
 
-                sendingRef.current =
-                    true;
+                const currentPosition =
+                    getCurrentPosition();
+
+
+                const request =
+                    (
+                        async () => {
+
+                            try {
+
+                                await addStudySessionTime(
+
+                                    sessionId,
+
+                                    secondsToSend,
+
+                                    currentPosition
+
+                                );
+
+
+                            } catch (error) {
+
+                                /*
+                                 * Se ainda estamos na página,
+                                 * devolvemos o tempo para
+                                 * uma nova tentativa.
+                                 */
+                                if (!disposed) {
+
+                                    pendingSecondsRef.current +=
+                                        secondsToSend;
+
+                                }
+
+
+                                console.error(
+                                    'Erro ao registrar tempo da sessão:',
+                                    error
+                                );
+
+                            }
+
+                        }
+                    )();
+
+
+                sendingPromiseRef.current =
+                    request;
 
 
                 try {
 
-                    await registerStudyTime(
-
-                        trackedVideoId,
-
-                        secondsToSend
-
-                    );
-
-
-                } catch (error) {
-
-                    /*
-                     * Não perde os segundos
-                     * se a rede falhar.
-                     */
-                    if (!disposed) {
-
-                        pendingSecondsRef.current +=
-                            secondsToSend;
-
-                    }
-
-
-                    console.warn(
-                        'Não foi possível registrar o tempo de estudo.',
-                        error
-                    );
+                    await request;
 
 
                 } finally {
 
-                    sendingRef.current =
-                        false;
-
-
-                    if (disposed) {
-
-                        return;
-
-                    }
-
-
                     if (
-                        forceFlushRequestedRef.current
+                        sendingPromiseRef.current ===
+                        request
                     ) {
 
-                        forceFlushRequestedRef.current =
-                            false;
-
-
-                        void flush(
-                            true
-                        );
-
-
-                    } else if (
-                        pendingSecondsRef.current >=
-                        SEND_INTERVAL_SECONDS
-                    ) {
-
-                        void flush();
+                        sendingPromiseRef.current =
+                            null;
 
                     }
+
+                }
+
+
+                /*
+                 * Se estamos finalizando,
+                 * pode haver mais de 60s
+                 * pendentes.
+                 */
+                if (
+                    force &&
+                    pendingSecondsRef.current >= 1
+                ) {
+
+                    await flushPending(
+                        true
+                    );
+
+
+                } else if (
+                    !force &&
+                    pendingSecondsRef.current >=
+                    SEND_INTERVAL_SECONDS
+                ) {
+
+                    await flushPending(
+                        false
+                    );
 
                 }
 
@@ -341,8 +583,116 @@ export function useStudyTimeTracker({
 
 
             /*
-             * Faz uma amostra da reprodução.
+             * =================================
+             * FINALIZAR SESSÃO
+             * =================================
              */
+
+            async function finishSession() {
+
+                if (
+                    endingSessionRef.current
+                ) {
+
+                    return;
+
+                }
+
+
+                endingSessionRef.current =
+                    true;
+
+
+                try {
+
+                    /*
+                     * Caso o POST de início ainda
+                     * esteja acontecendo, espera.
+                     */
+                    if (
+                        startingSessionRef.current
+                    ) {
+
+                        await startingSessionRef.current;
+
+                    }
+
+
+                    const sessionId =
+                        sessionIdRef.current;
+
+
+                    if (!sessionId) {
+
+                        return;
+
+                    }
+
+
+                    /*
+                     * Antes de fechar a sessão,
+                     * manda os segundos restantes.
+                     */
+                    await flushPending(
+                        true
+                    );
+
+
+                    await endStudySession(
+
+                        sessionId,
+
+                        getCurrentPosition()
+
+                    );
+
+
+                    /*
+                     * Só limpa se continuamos
+                     * falando da mesma sessão.
+                     */
+                    if (
+                        sessionIdRef.current ===
+                        sessionId
+                    ) {
+
+                        sessionIdRef.current =
+                            null;
+
+                    }
+
+
+                    pendingSecondsRef.current =
+                        0;
+
+
+                } catch (error) {
+
+                    console.error(
+                        'Erro ao finalizar sessão de estudo:',
+                        error
+                    );
+
+
+                } finally {
+
+                    endingSessionRef.current =
+                        false;
+
+
+                    resetSample();
+
+                }
+
+            }
+
+
+            /*
+             * =================================
+             * AMOSTRAGEM DA REPRODUÇÃO
+             * =================================
+             */
+
             function samplePlayback() {
 
                 const video =
@@ -373,9 +723,8 @@ export function useStudyTimeTracker({
 
 
                 /*
-                 * Atualizamos as referências
-                 * independentemente de contar
-                 * ou não.
+                 * Sempre atualizamos os
+                 * pontos de referência.
                  */
                 lastMediaTimeRef.current =
                     currentMediaTime;
@@ -385,9 +734,6 @@ export function useStudyTimeTracker({
                     now;
 
 
-                /*
-                 * Primeira amostra.
-                 */
                 if (
                     previousMediaTime === null ||
                     previousWallTime === null
@@ -399,10 +745,18 @@ export function useStudyTimeTracker({
 
 
                 /*
-                 * Condições necessárias para
-                 * considerar que o usuário
-                 * está realmente assistindo.
+                 * Só contabilizamos quando
+                 * existe sessão aberta.
                  */
+                if (
+                    !sessionIdRef.current
+                ) {
+
+                    return;
+
+                }
+
+
                 const canCount =
 
                     !video.paused &&
@@ -439,11 +793,6 @@ export function useStudyTimeTracker({
                     1000;
 
 
-                /*
-                 * Se a posição não avançou,
-                 * provavelmente houve
-                 * buffering.
-                 */
                 if (
                     mediaDelta <= 0 ||
                     wallDelta <= 0
@@ -455,15 +804,14 @@ export function useStudyTimeTracker({
 
 
                 /*
-                 * Detecta um salto muito grande
-                 * na posição.
+                 * Detecta salto manual.
                  *
                  * Exemplo:
                  *
-                 * 05:00 → 25:00
+                 * 02:00 → 15:00
                  *
-                 * Isso foi seek, não
-                 * 20 minutos assistidos.
+                 * Isso não pode virar
+                 * 13 minutos estudados.
                  */
                 const maximumExpectedMediaDelta =
                     Math.max(
@@ -488,13 +836,11 @@ export function useStudyTimeTracker({
 
 
                 /*
-                 * Contamos TEMPO REAL,
-                 * não duração do conteúdo.
+                 * Medimos tempo REAL.
                  *
-                 * Se assistir em 2x durante
-                 * 1 segundo:
-                 *
-                 * tempo estudado = 1 segundo.
+                 * 1 segundo assistido em 2x
+                 * ainda representa 1 segundo
+                 * dedicado ao estudo.
                  */
                 const countedSeconds =
                     Math.min(
@@ -510,16 +856,12 @@ export function useStudyTimeTracker({
                     countedSeconds;
 
 
-                /*
-                 * A cada ~15 segundos,
-                 * manda para o backend.
-                 */
                 if (
                     pendingSecondsRef.current >=
                     SEND_INTERVAL_SECONDS
                 ) {
 
-                    void flush();
+                    void flushPending();
 
                 }
 
@@ -527,17 +869,31 @@ export function useStudyTimeTracker({
 
 
             /*
-             * Eventos que interrompem ou
-             * reiniciam a medição.
+             * =================================
+             * EVENTOS
+             * =================================
              */
-            function handlePlay() {
+
+            async function handlePlay() {
+
+                resetSample();
+
+
+                await ensureSession();
+
 
                 resetSample();
 
             }
 
 
-            function handlePlaying() {
+            async function handlePlaying() {
+
+                resetSample();
+
+
+                await ensureSession();
+
 
                 resetSample();
 
@@ -549,9 +905,7 @@ export function useStudyTimeTracker({
                 resetSample();
 
 
-                void flush(
-                    true
-                );
+                void finishSession();
 
             }
 
@@ -561,9 +915,7 @@ export function useStudyTimeTracker({
                 resetSample();
 
 
-                void flush(
-                    true
-                );
+                void finishSession();
 
             }
 
@@ -571,9 +923,9 @@ export function useStudyTimeTracker({
             function handleSeeking() {
 
                 /*
-                 * Importantíssimo:
-                 * resetamos para que um salto
-                 * no vídeo não seja contabilizado.
+                 * Apenas reseta a medição.
+                 *
+                 * Não encerra a sessão.
                  */
                 resetSample();
 
@@ -590,7 +942,7 @@ export function useStudyTimeTracker({
             function handleWaiting() {
 
                 /*
-                 * Buffering.
+                 * Buffering não conta.
                  */
                 resetSample();
 
@@ -609,13 +961,38 @@ export function useStudyTimeTracker({
                 resetSample();
 
 
+                /*
+                 * Ao sair da aba, encerramos
+                 * a sessão atual.
+                 */
                 if (
                     document.hidden
                 ) {
 
-                    void flush(
-                        true
-                    );
+                    void finishSession();
+
+
+                    return;
+
+                }
+
+
+                /*
+                 * Se voltou para a aba e
+                 * o vídeo continua tocando,
+                 * inicia nova sessão.
+                 */
+                const video =
+                    videoRef.current;
+
+
+                if (
+                    video &&
+                    !video.paused &&
+                    !video.ended
+                ) {
+
+                    void ensureSession();
 
                 }
 
@@ -623,8 +1000,11 @@ export function useStudyTimeTracker({
 
 
             /*
-             * Intervalo de amostragem.
+             * =================================
+             * INTERVALO
+             * =================================
              */
+
             const intervalId =
                 window.setInterval(
 
@@ -636,10 +1016,11 @@ export function useStudyTimeTracker({
 
 
             /*
-             * Como o elemento pode já
-             * existir, adicionamos os
-             * listeners nele.
+             * =================================
+             * LISTENERS
+             * =================================
              */
+
             const video =
                 videoRef.current;
 
@@ -702,11 +1083,14 @@ export function useStudyTimeTracker({
             );
 
 
-            /*
-             * Inicializa referências.
-             */
             resetSample();
 
+
+            /*
+             * =================================
+             * CLEANUP
+             * =================================
+             */
 
             return () => {
 
@@ -778,9 +1162,27 @@ export function useStudyTimeTracker({
 
 
                 /*
-                 * Últimos segundos ainda
-                 * não enviados.
+                 * =================================
+                 * ÚLTIMO ENVIO
+                 * =================================
+                 *
+                 * Em unmount não podemos depender
+                 * de operações React assíncronas.
+                 *
+                 * Fazemos best effort com keepalive.
                  */
+
+                const sessionId =
+                    sessionIdRef.current;
+
+
+                if (!sessionId) {
+
+                    return;
+
+                }
+
+
                 const remainingSeconds =
                     Math.min(
 
@@ -793,6 +1195,14 @@ export function useStudyTimeTracker({
                     );
 
 
+                const endPosition =
+                    getCurrentPosition();
+
+
+                /*
+                 * Remove os segundos antes de
+                 * disparar o envio final.
+                 */
                 if (
                     remainingSeconds > 0
                 ) {
@@ -801,17 +1211,67 @@ export function useStudyTimeTracker({
                         remainingSeconds;
 
 
-                    /*
-                     * keepalive permite que o
-                     * navegador tente finalizar
-                     * a requisição mesmo durante
-                     * uma navegação.
-                     */
-                    void registerStudyTime(
+                    void (
+                        async () => {
 
-                        trackedVideoId,
+                            try {
 
-                        remainingSeconds,
+                                /*
+                                 * Primeiro envia o tempo.
+                                 */
+                                await addStudySessionTime(
+
+                                    sessionId,
+
+                                    remainingSeconds,
+
+                                    endPosition,
+
+                                    {
+                                        keepalive:
+                                            true
+                                    }
+
+                                );
+
+
+                                /*
+                                 * Depois encerra.
+                                 */
+                                await endStudySession(
+
+                                    sessionId,
+
+                                    endPosition,
+
+                                    {
+                                        keepalive:
+                                            true
+                                    }
+
+                                );
+
+
+                            } catch (error) {
+
+                                console.warn(
+                                    'Não foi possível encerrar a sessão durante a navegação.',
+                                    error
+                                );
+
+                            }
+
+                        }
+                    )();
+
+
+                } else {
+
+                    void endStudySession(
+
+                        sessionId,
+
+                        endPosition,
 
                         {
                             keepalive:
@@ -822,7 +1282,7 @@ export function useStudyTimeTracker({
                         error => {
 
                             console.warn(
-                                'Não foi possível enviar o tempo restante.',
+                                'Não foi possível encerrar a sessão durante a navegação.',
                                 error
                             );
 
@@ -831,20 +1291,13 @@ export function useStudyTimeTracker({
 
                 }
 
-
-                lastMediaTimeRef.current =
-                    null;
-
-
-                lastWallTimeRef.current =
-                    null;
-
             };
 
         },
         [
             videoId,
-            videoRef
+            videoRef,
+            enabled
         ]
     );
 

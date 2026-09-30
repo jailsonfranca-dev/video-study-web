@@ -4,19 +4,18 @@ import {
     useState
 } from 'react';
 
-
 import {
     getDashboardSummary,
     getWeeklyActivity,
     getCalendarActivity,
     getContinueStudying,
     getRecentActivity,
+    getStudyTime,
+    getStudySessions,
     syncGoogleDrive,
     updateWeeklyGoal,
-    getStudyTime,
     updateStudyTimeGoal
 } from '../api/dashboardApi';
-
 
 import type {
     DashboardSummary,
@@ -24,24 +23,21 @@ import type {
     CalendarActivityDay,
     ContinueStudyingVideo,
     RecentActivityItem,
-    StudyTimeMetrics
+    StudyTimeMetrics,
+    StudySessionItem
 } from '../types/dashboard';
-
 
 import {
     WeeklyStudyChart
 } from '../components/dashboard/WeeklyStudyChart';
 
-
 import {
     StudyCalendar
 } from '../components/dashboard/StudyCalendar';
 
-
 import {
     ContinueStudying
 } from '../components/dashboard/ContinueStudying';
-
 
 import {
     DriveSyncCard
@@ -56,9 +52,12 @@ import {
 } from '../components/dashboard/StudyTimeChart';
 
 import {
+    StudySessionHistory
+} from '../components/dashboard/StudySessionHistory';
+
+import {
     formatStudyTime
 } from '../utils/formatStudyTime';
-
 
 import '../components/dashboard/DashboardPage.css';
 
@@ -66,9 +65,9 @@ import '../components/dashboard/DashboardPage.css';
 export function DashboardPage() {
 
     /*
-     * =========================
-     * META SEMANAL
-     * =========================
+     * =====================================
+     * META SEMANAL DE AULAS
+     * =====================================
      */
 
     const [
@@ -88,14 +87,6 @@ export function DashboardPage() {
             ''
         );
 
-    const [
-        studyTime,
-        setStudyTime
-    ] =
-        useState<StudyTimeMetrics | null>(
-            null
-        );
-
 
     const [
         savingWeeklyGoal,
@@ -105,13 +96,12 @@ export function DashboardPage() {
             false
         );
 
-    const [
-        recentActivities,
-        setRecentActivities
-    ] =
-        useState<RecentActivityItem[]>(
-            []
-        );
+
+    /*
+     * =====================================
+     * META SEMANAL DE TEMPO
+     * =====================================
+     */
 
     const [
         editingStudyTimeGoal,
@@ -141,9 +131,9 @@ export function DashboardPage() {
 
 
     /*
-     * =========================
+     * =====================================
      * DADOS DO DASHBOARD
-     * =========================
+     * =====================================
      */
 
     const [
@@ -183,6 +173,33 @@ export function DashboardPage() {
 
 
     const [
+        recentActivities,
+        setRecentActivities
+    ] =
+        useState<RecentActivityItem[]>(
+            []
+        );
+
+
+    const [
+        studyTime,
+        setStudyTime
+    ] =
+        useState<StudyTimeMetrics | null>(
+            null
+        );
+
+
+    const [
+        studySessions,
+        setStudySessions
+    ] =
+        useState<StudySessionItem[]>(
+            []
+        );
+
+
+    const [
         calendarMonth,
         setCalendarMonth
     ] =
@@ -192,9 +209,9 @@ export function DashboardPage() {
 
 
     /*
-     * =========================
-     * ESTADOS DE INTERFACE
-     * =========================
+     * =====================================
+     * ESTADOS DA INTERFACE
+     * =====================================
      */
 
     const [
@@ -234,16 +251,15 @@ export function DashboardPage() {
 
 
     /*
-     * =========================
+     * =====================================
      * CARREGAR DASHBOARD
-     * =========================
+     * =====================================
      */
 
     const loadDashboard =
         useCallback(
             async (
-                signal?:
-                    AbortSignal
+                signal?: AbortSignal
             ) => {
 
                 const [
@@ -251,7 +267,8 @@ export function DashboardPage() {
                     weekResult,
                     continueResult,
                     recentActivityResult,
-                    studyTimeResult
+                    studyTimeResult,
+                    studySessionsResult
                 ] =
                     await Promise.all([
 
@@ -275,9 +292,12 @@ export function DashboardPage() {
                             signal
                         ),
 
+                        getStudySessions(
+                            20,
+                            signal
+                        )
 
                     ]);
-
 
 
                 if (!summaryResult) {
@@ -287,10 +307,6 @@ export function DashboardPage() {
                     );
 
                 }
-
-                setStudyTime(
-                    studyTimeResult
-                );
 
 
                 setSummary(
@@ -309,8 +325,20 @@ export function DashboardPage() {
                     []
                 );
 
+
                 setRecentActivities(
                     recentActivityResult?.activities ??
+                    []
+                );
+
+
+                setStudyTime(
+                    studyTimeResult
+                );
+
+
+                setStudySessions(
+                    studySessionsResult?.sessions ??
                     []
                 );
 
@@ -320,19 +348,16 @@ export function DashboardPage() {
 
 
     /*
-     * =========================
+     * =====================================
      * CARREGAR CALENDÁRIO
-     * =========================
+     * =====================================
      */
 
     const loadCalendar =
         useCallback(
             async (
-                month:
-                    Date,
-
-                signal?:
-                    AbortSignal
+                month: Date,
+                signal?: AbortSignal
             ) => {
 
                 const result =
@@ -358,9 +383,9 @@ export function DashboardPage() {
 
 
     /*
-     * =========================
+     * =====================================
      * PRIMEIRA CARGA
-     * =========================
+     * =====================================
      */
 
     useEffect(
@@ -428,7 +453,7 @@ export function DashboardPage() {
             }
 
 
-            load();
+            void load();
 
 
             return () => {
@@ -445,9 +470,11 @@ export function DashboardPage() {
 
 
     /*
-     * Carrega o calendário
-     * sempre que o mês mudar.
+     * =====================================
+     * CARREGAR CALENDÁRIO
+     * =====================================
      */
+
     useEffect(
         () => {
 
@@ -491,7 +518,7 @@ export function DashboardPage() {
             }
 
 
-            load();
+            void load();
 
 
             return () => {
@@ -509,14 +536,13 @@ export function DashboardPage() {
 
 
     /*
-     * =========================
+     * =====================================
      * ALTERAR MÊS
-     * =========================
+     * =====================================
      */
 
     function handleMonthChange(
-        month:
-            Date
+        month: Date
     ) {
 
         setCalendarMonth(
@@ -525,11 +551,12 @@ export function DashboardPage() {
 
     }
 
+
     /*
-    * =========================
-    * TimeGoalEdit
-    * =========================
-    */
+     * =====================================
+     * EDITAR META SEMANAL DE TEMPO
+     * =====================================
+     */
 
     function handleStartStudyTimeGoalEdit() {
 
@@ -565,11 +592,6 @@ export function DashboardPage() {
 
     }
 
-    /*
-     * =========================
-     * Criar Cancelar
-     * =========================
-     */
 
     function handleCancelStudyTimeGoalEdit() {
 
@@ -589,11 +611,6 @@ export function DashboardPage() {
 
     }
 
-    /*
-    * =========================
-    * Criar Salvar
-    * =========================
-    */
 
     async function handleSaveStudyTimeGoal() {
 
@@ -622,15 +639,6 @@ export function DashboardPage() {
         }
 
 
-        /*
-         * Converte horas para minutos.
-         *
-         * Exemplo:
-         *
-         * 10h
-         * ↓
-         * 600 minutos
-         */
         const targetMinutes =
             Math.round(
                 hours *
@@ -655,11 +663,6 @@ export function DashboardPage() {
             );
 
 
-            /*
-             * Busca novamente as métricas
-             * para atualizar target,
-             * remaining, progress etc.
-             */
             const updatedStudyTime =
                 await getStudyTime();
 
@@ -681,21 +684,13 @@ export function DashboardPage() {
 
         } catch (error) {
 
-            if (
+            setError(
+
                 error instanceof Error
-            ) {
+                    ? error.message
+                    : 'Não foi possível atualizar a meta semanal de tempo.'
 
-                setError(
-                    error.message
-                );
-
-            } else {
-
-                setError(
-                    'Não foi possível atualizar a meta semanal de tempo.'
-                );
-
-            }
+            );
 
 
         } finally {
@@ -710,9 +705,9 @@ export function DashboardPage() {
 
 
     /*
-     * =========================
-     * EDITAR META SEMANAL
-     * =========================
+     * =====================================
+     * EDITAR META SEMANAL DE AULAS
+     * =====================================
      */
 
     function handleStartWeeklyGoalEdit() {
@@ -764,12 +759,6 @@ export function DashboardPage() {
     }
 
 
-    /*
-     * =========================
-     * SALVAR META SEMANAL
-     * =========================
-     */
-
     async function handleSaveWeeklyGoal() {
 
         const target =
@@ -814,16 +803,6 @@ export function DashboardPage() {
             );
 
 
-            /*
-             * Busca novamente o resumo
-             * porque o backend recalcula:
-             *
-             * target
-             * completed
-             * remaining
-             * progressPercent
-             * achieved
-             */
             const result =
                 await getDashboardSummary();
 
@@ -875,14 +854,13 @@ export function DashboardPage() {
 
 
     /*
-     * =========================
-     * SINCRONIZAR GOOGLE DRIVE
-     * =========================
+     * =====================================
+     * FORMATAR MELHOR DIA
+     * =====================================
      */
 
     function formatBestDay(
-        dateValue:
-            string | null
+        dateValue: string | null
     ) {
 
         if (!dateValue) {
@@ -892,15 +870,43 @@ export function DashboardPage() {
         }
 
 
+        /*
+         * Aceita tanto:
+         *
+         * 2026-09-29
+         *
+         * quanto:
+         *
+         * 2026-09-29T00:00:00.000Z
+         */
+        const datePart =
+            dateValue.slice(
+                0,
+                10
+            );
+
+
         const date =
             new Date(
-                `${dateValue}T12:00:00`
+                `${datePart}T12:00:00`
             );
+
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return '—';
+
+        }
 
 
         return date.toLocaleDateString(
             'pt-BR',
             {
+
                 weekday:
                     'long',
 
@@ -909,10 +915,18 @@ export function DashboardPage() {
 
                 month:
                     '2-digit'
+
             }
         );
 
     }
+
+
+    /*
+     * =====================================
+     * SINCRONIZAR GOOGLE DRIVE
+     * =====================================
+     */
 
     async function handleSync() {
 
@@ -941,13 +955,6 @@ export function DashboardPage() {
             );
 
 
-            /*
-             * Após sincronizar:
-             *
-             * - atualiza totais
-             * - atualiza vídeos
-             * - atualiza calendário
-             */
             await Promise.all([
 
                 loadDashboard(),
@@ -982,9 +989,9 @@ export function DashboardPage() {
 
 
     /*
-     * =========================
+     * =====================================
      * LOADING
-     * =========================
+     * =====================================
      */
 
     if (loading) {
@@ -1005,9 +1012,9 @@ export function DashboardPage() {
 
 
     /*
-     * =========================
+     * =====================================
      * DASHBOARD
-     * =========================
+     * =====================================
      */
 
     return (
@@ -1044,22 +1051,24 @@ export function DashboardPage() {
             }
 
 
+            {/*
+             * =================================
+             * CARDS PRINCIPAIS
+             * =================================
+             */}
+
             {
                 summary && (
 
                     <section className="dashboard-stats">
 
-
-                        {/* =========================
-                            HOJE
-                        ========================== */}
+                        {/* HOJE */}
 
                         <article className="dashboard-stat-card">
 
                             <span>
                                 Hoje
                             </span>
-
 
                             <strong>
 
@@ -1071,7 +1080,6 @@ export function DashboardPage() {
 
                             </strong>
 
-
                             <small>
                                 aulas concluídas
                             </small>
@@ -1079,16 +1087,13 @@ export function DashboardPage() {
                         </article>
 
 
-                        {/* =========================
-                            ESTA SEMANA
-                        ========================== */}
+                        {/* ESTA SEMANA */}
 
                         <article className="dashboard-stat-card">
 
                             <span>
                                 Esta semana
                             </span>
-
 
                             <strong>
 
@@ -1100,7 +1105,6 @@ export function DashboardPage() {
 
                             </strong>
 
-
                             <small>
                                 aulas concluídas
                             </small>
@@ -1108,9 +1112,7 @@ export function DashboardPage() {
                         </article>
 
 
-                        {/* =========================
-                            META SEMANAL
-                        ========================== */}
+                        {/* META SEMANAL */}
 
                         <article className="dashboard-stat-card">
 
@@ -1119,7 +1121,6 @@ export function DashboardPage() {
                                 <span>
                                     Meta semanal
                                 </span>
-
 
                                 {
                                     !editingWeeklyGoal && (
@@ -1156,9 +1157,7 @@ export function DashboardPage() {
                                                 onChange={
                                                     event =>
                                                         setWeeklyGoalInput(
-                                                            event
-                                                                .target
-                                                                .value
+                                                            event.target.value
                                                         )
                                                 }
                                                 disabled={
@@ -1234,11 +1233,7 @@ export function DashboardPage() {
                                                 <div
                                                     style={{
                                                         width:
-                                                            `${
-                                                                summary
-                                                                    .weeklyGoal
-                                                                    .progressPercent
-                                                            }%`
+                                                            `${summary.weeklyGoal.progressPercent}%`
                                                     }}
                                                 />
 
@@ -1254,11 +1249,7 @@ export function DashboardPage() {
 
                                                         ? '🎉 Meta concluída!'
 
-                                                        : `${
-                                                            summary
-                                                                .weeklyGoal
-                                                                .remaining
-                                                        } aulas restantes`
+                                                        : `${summary.weeklyGoal.remaining} aulas restantes`
                                                 }
 
                                             </small>
@@ -1271,9 +1262,7 @@ export function DashboardPage() {
                         </article>
 
 
-                        {/* =========================
-                            SEQUÊNCIA
-                        ========================== */}
+                        {/* SEQUÊNCIA */}
 
                         <article className="dashboard-stat-card">
 
@@ -1281,12 +1270,9 @@ export function DashboardPage() {
                                 Sequência
                             </span>
 
-
                             <strong>
 
-                                🔥
-
-                                {' '}
+                                🔥{' '}
 
                                 {
                                     summary
@@ -1295,7 +1281,6 @@ export function DashboardPage() {
                                 }
 
                             </strong>
-
 
                             <small>
 
@@ -1315,9 +1300,7 @@ export function DashboardPage() {
                         </article>
 
 
-                        {/* =========================
-                            COMPARAÇÃO
-                        ========================== */}
+                        {/* SEMANA ANTERIOR */}
 
                         <article className="dashboard-stat-card">
 
@@ -1328,11 +1311,7 @@ export function DashboardPage() {
 
                             <strong
                                 className={
-                                    `comparison-${
-                                        summary
-                                            .comparison
-                                            .trend
-                                    }`
+                                    `comparison-${summary.comparison.trend}`
                                 }
                             >
 
@@ -1345,7 +1324,6 @@ export function DashboardPage() {
                                     '↑ '
                                 }
 
-
                                 {
                                     summary
                                         .comparison
@@ -1354,7 +1332,6 @@ export function DashboardPage() {
                                     &&
                                     '↓ '
                                 }
-
 
                                 {
                                     summary
@@ -1365,7 +1342,6 @@ export function DashboardPage() {
                                     '→ '
                                 }
 
-
                                 {
                                     summary
                                         .comparison
@@ -1374,7 +1350,6 @@ export function DashboardPage() {
                                         ? '+'
                                         : ''
                                 }
-
 
                                 {
                                     summary
@@ -1418,16 +1393,13 @@ export function DashboardPage() {
                         </article>
 
 
-                        {/* =========================
-                            PROGRESSO GERAL
-                        ========================== */}
+                        {/* PROGRESSO GERAL */}
 
                         <article className="dashboard-stat-card">
 
                             <span>
                                 Progresso geral
                             </span>
-
 
                             <strong>
 
@@ -1447,11 +1419,7 @@ export function DashboardPage() {
                                 <div
                                     style={{
                                         width:
-                                            `${
-                                                summary
-                                                    .library
-                                                    .progressPercent
-                                            }%`
+                                            `${summary.library.progressPercent}%`
                                     }}
                                 />
 
@@ -1466,11 +1434,7 @@ export function DashboardPage() {
                                         .completedVideos
                                 }
 
-                                {' '}
-
-                                de
-
-                                {' '}
+                                {' '}de{' '}
 
                                 {
                                     summary
@@ -1478,9 +1442,7 @@ export function DashboardPage() {
                                         .totalVideos
                                 }
 
-                                {' '}
-
-                                aulas
+                                {' '}aulas
 
                             </small>
 
@@ -1492,9 +1454,11 @@ export function DashboardPage() {
             }
 
 
-            {/* =========================
-                GRÁFICO + CALENDÁRIO
-            ========================== */}
+            {/*
+             * =================================
+             * GRÁFICO DE AULAS + CALENDÁRIO
+             * =================================
+             */}
 
             <section className="dashboard-main-grid">
 
@@ -1524,9 +1488,11 @@ export function DashboardPage() {
             </section>
 
 
-            {/* =========================
-                GOOGLE DRIVE
-            ========================== */}
+            {/*
+             * =================================
+             * GOOGLE DRIVE
+             * =================================
+             */}
 
             <DriveSyncCard
 
@@ -1545,17 +1511,30 @@ export function DashboardPage() {
             />
 
 
-            {/* =========================
-                CONTINUAR ESTUDANDO
-            ========================== */}
+            {/*
+             * =================================
+             * CONTINUAR ESTUDANDO
+             * =================================
+             *
+             * IMPORTANTE:
+             * agora existe apenas UMA vez.
+             */}
 
             <ContinueStudying
-
                 videos={
                     continueVideos
                 }
-
             />
+
+
+            {/*
+             * =================================
+             * ATIVIDADE RECENTE
+             * =================================
+             *
+             * IMPORTANTE:
+             * agora existe apenas UMA vez.
+             */}
 
             <RecentActivity
                 activities={
@@ -1564,28 +1543,41 @@ export function DashboardPage() {
             />
 
 
-            { /* =========================
-                    study-time-stats
-            ========================== */
+            {/*
+             * =================================
+             * HISTÓRICO DE SESSÕES
+             * =================================
+             */}
+
+            <StudySessionHistory
+                sessions={
+                    studySessions
+                }
+            />
+
+
+            {/*
+             * =================================
+             * MÉTRICAS DE TEMPO
+             * =================================
+             */}
+
+            {
                 studyTime && (
 
+                    <section className="study-time-stats">
 
-                    <section
-                        className="study-time-stats"
-                    >
+                        {/*
+                         * META SEMANAL DE TEMPO
+                         */}
 
+                        <article className="dashboard-stat-card">
 
-                        <article
-                            className="dashboard-stat-card"
-                        >
+                            <div className="dashboard-stat-header">
 
-                            <div
-                                className="dashboard-stat-header"
-                            >
-
-        <span>
-            Meta semanal de tempo
-        </span>
+                                <span>
+                                    Meta semanal de tempo
+                                </span>
 
 
                                 {
@@ -1617,13 +1609,9 @@ export function DashboardPage() {
                                 editingStudyTimeGoal
                                     ? (
 
-                                        <div
-                                            className="weekly-goal-form"
-                                        >
+                                        <div className="weekly-goal-form">
 
-                                            <div
-                                                className="study-time-goal-input"
-                                            >
+                                            <div className="study-time-goal-input">
 
                                                 <input
 
@@ -1656,15 +1644,13 @@ export function DashboardPage() {
 
 
                                                 <span>
-                            horas
-                        </span>
+                                                    horas
+                                                </span>
 
                                             </div>
 
 
-                                            <div
-                                                className="weekly-goal-actions"
-                                            >
+                                            <div className="weekly-goal-actions">
 
                                                 <button
 
@@ -1716,119 +1702,118 @@ export function DashboardPage() {
 
                                         <>
 
-                                            <>
-                                                <strong className="study-time-goal-value">
+                                            <strong className="study-time-goal-value">
+
+                                                {
+                                                    formatStudyTime(
+                                                        studyTime
+                                                            .weeklyGoal
+                                                            .studiedSeconds
+                                                    )
+                                                }
+
+
+                                                <span>
+
+                                                    {' / '}
 
                                                     {
                                                         formatStudyTime(
                                                             studyTime
                                                                 .weeklyGoal
-                                                                .studiedSeconds
+                                                                .targetSeconds
                                                         )
                                                     }
 
-                                                    <span>
-            {' / '}
+                                                </span>
 
-                                                        {
-                                                            formatStudyTime(
+                                            </strong>
+
+
+                                            <div className="study-time-goal-progress-row">
+
+                                                <div className="study-time-goal-progress">
+
+                                                    <div
+
+                                                        className={
+                                                            `study-time-goal-progress-fill ${
                                                                 studyTime
                                                                     .weeklyGoal
-                                                                    .targetSeconds
-                                                            )
+                                                                    .achieved
+                                                                    ? 'completed'
+                                                                    : ''
+                                                            }`
                                                         }
-        </span>
 
-                                                </strong>
-
-
-                                                <div className="study-time-goal-progress-row">
-
-                                                    <div className="study-time-goal-progress">
-
-                                                        <div
-
-                                                            className={
-                                                                `study-time-goal-progress-fill ${
+                                                        style={{
+                                                            width:
+                                                                `${Math.min(
                                                                     studyTime
                                                                         .weeklyGoal
-                                                                        .achieved
-                                                                        ? 'completed'
-                                                                        : ''
-                                                                }`
-                                                            }
+                                                                        .progressPercent,
+                                                                    100
+                                                                )}%`
+                                                        }}
 
-                                                            style={{
-
-                                                                width:
-                                                                    `${Math.min(
-                                                                        studyTime
-                                                                            .weeklyGoal
-                                                                            .progressPercent,
-                                                                        100
-                                                                    )}%`
-
-                                                            }}
-
-                                                        />
-
-                                                    </div>
-
-
-                                                    <span className="study-time-goal-percent">
-
-            {
-                studyTime
-                    .weeklyGoal
-                    .progressPercent
-                    .toFixed(
-                        1
-                    )
-                    .replace(
-                        '.0',
-                        ''
-                    )
-            }
-
-                                                        %
-
-        </span>
+                                                    />
 
                                                 </div>
 
 
-                                                {
-                                                    studyTime
-                                                        .weeklyGoal
-                                                        .achieved
-                                                        ? (
+                                                <span className="study-time-goal-percent">
 
-                                                            <small className="study-time-goal-achieved">
+                                                    {
+                                                        studyTime
+                                                            .weeklyGoal
+                                                            .progressPercent
+                                                            .toFixed(
+                                                                1
+                                                            )
+                                                            .replace(
+                                                                '.0',
+                                                                ''
+                                                            )
+                                                    }
 
-                                                                🎉 Meta de tempo concluída!
+                                                    %
 
-                                                            </small>
+                                                </span>
 
-                                                        )
-                                                        : (
+                                            </div>
 
-                                                            <small className="study-time-goal-remaining">
 
-                                                                Faltam{' '}
+                                            {
+                                                studyTime
+                                                    .weeklyGoal
+                                                    .achieved
+                                                    ? (
 
-                                                                {
-                                                                    formatStudyTime(
-                                                                        studyTime
-                                                                            .weeklyGoal
-                                                                            .remainingSeconds
-                                                                    )
-                                                                }
+                                                        <small className="study-time-goal-achieved">
 
-                                                            </small>
+                                                            🎉 Meta de tempo concluída!
 
-                                                        )
-                                                }
-                                            </>
+                                                        </small>
+
+                                                    )
+                                                    : (
+
+                                                        <small className="study-time-goal-remaining">
+
+                                                            Faltam{' '}
+
+                                                            {
+                                                                formatStudyTime(
+                                                                    studyTime
+                                                                        .weeklyGoal
+                                                                        .remainingSeconds
+                                                                )
+                                                            }
+
+                                                        </small>
+
+                                                    )
+                                            }
 
                                         </>
 
@@ -1838,14 +1823,15 @@ export function DashboardPage() {
                         </article>
 
 
-                        <article
-                            className="dashboard-stat-card"
-                        >
+                        {/*
+                         * TEMPO HOJE
+                         */}
 
-                <span>
-                    Tempo hoje
-                </span>
+                        <article className="dashboard-stat-card">
 
+                            <span>
+                                Tempo hoje
+                            </span>
 
                             <strong>
 
@@ -1859,7 +1845,6 @@ export function DashboardPage() {
 
                             </strong>
 
-
                             <small>
                                 tempo efetivamente estudado
                             </small>
@@ -1867,14 +1852,15 @@ export function DashboardPage() {
                         </article>
 
 
-                        <article
-                            className="dashboard-stat-card"
-                        >
+                        {/*
+                         * ESTA SEMANA
+                         */}
 
-                <span>
-                    Esta semana
-                </span>
+                        <article className="dashboard-stat-card">
 
+                            <span>
+                                Esta semana
+                            </span>
 
                             <strong>
 
@@ -1888,7 +1874,6 @@ export function DashboardPage() {
 
                             </strong>
 
-
                             <small>
                                 desde segunda-feira
                             </small>
@@ -1896,14 +1881,15 @@ export function DashboardPage() {
                         </article>
 
 
-                        <article
-                            className="dashboard-stat-card"
-                        >
+                        {/*
+                         * TEMPO TOTAL
+                         */}
 
-                <span>
-                    Tempo total
-                </span>
+                        <article className="dashboard-stat-card">
 
+                            <span>
+                                Tempo total
+                            </span>
 
                             <strong>
 
@@ -1917,7 +1903,6 @@ export function DashboardPage() {
 
                             </strong>
 
-
                             <small>
                                 desde o início do acompanhamento
                             </small>
@@ -1925,14 +1910,15 @@ export function DashboardPage() {
                         </article>
 
 
-                        <article
-                            className="dashboard-stat-card"
-                        >
+                        {/*
+                         * MÉDIA DIÁRIA
+                         */}
 
-                <span>
-                    Média diária
-                </span>
+                        <article className="dashboard-stat-card">
 
+                            <span>
+                                Média diária
+                            </span>
 
                             <strong>
 
@@ -1946,7 +1932,6 @@ export function DashboardPage() {
 
                             </strong>
 
-
                             <small>
                                 média desta semana
                             </small>
@@ -1954,16 +1939,15 @@ export function DashboardPage() {
                         </article>
 
 
+                        {/*
+                         * MELHOR DIA
+                         */}
 
-                        <article
-                            className="dashboard-stat-card"
-                        >
+                        <article className="dashboard-stat-card">
 
-
-                <span>
-                    Melhor dia
-                </span>
-
+                            <span>
+                                Melhor dia
+                            </span>
 
                             <strong>
 
@@ -1976,7 +1960,6 @@ export function DashboardPage() {
                                 }
 
                             </strong>
-
 
                             <small>
 
@@ -1997,10 +1980,14 @@ export function DashboardPage() {
                 )
             }
 
+
+            {/*
+             * =================================
+             * GRÁFICO DE TEMPO ESTUDADO
+             * =================================
+             */}
+
             {
-                /* =========================
-                    gráfico
-            ========================== */
                 studyTime && (
 
                     <StudyTimeChart
@@ -2015,6 +2002,5 @@ export function DashboardPage() {
         </div>
 
     );
-
 
 }

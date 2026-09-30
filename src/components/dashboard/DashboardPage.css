@@ -997,3 +997,182 @@ max-width: 500px
 
     font-weight: 600;
 }
+
+.study-session-history-card {
+    margin-top: 24px;
+
+    padding: 20px;
+
+    border:
+            1px solid #e5e7eb;
+
+    border-radius:
+            14px;
+
+    background:
+            #ffffff;
+}
+
+
+.study-session-groups {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 24px;
+
+    margin-top: 18px;
+}
+
+
+.study-session-group {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+
+.study-session-day {
+    margin: 0;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    color: #475569;
+
+    text-transform: capitalize;
+}
+
+
+.study-session-list {
+    display: flex;
+
+    flex-direction: column;
+}
+
+
+.study-session-item {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 16px 4px;
+
+    border-bottom:
+            1px solid #e5e7eb;
+
+    text-decoration: none;
+
+    color: inherit;
+
+    transition:
+            background 0.15s ease;
+}
+
+
+.study-session-item:last-child {
+    border-bottom: none;
+}
+
+
+.study-session-item:hover {
+    background: #f8fafc;
+}
+
+
+.study-session-main {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+
+.study-session-folder {
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    color: #475569;
+}
+
+
+.study-session-video {
+    font-size: 15px;
+
+    color: #0f172a;
+}
+
+
+.study-session-period {
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    font-size: 12px;
+
+    color: #64748b;
+}
+
+
+.study-session-meta {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    gap: 2px;
+
+    flex-shrink: 0;
+}
+
+
+.study-session-meta strong {
+    font-size: 14px;
+
+    color: #0f172a;
+}
+
+
+.study-session-meta small {
+    font-size: 11px;
+
+    color: #64748b;
+}
+
+
+@media (
+max-width: 650px
+) {
+
+    .study-session-item {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 10px;
+    }
+
+
+    .study-session-meta {
+        align-items: flex-start;
+    }
+
+}
