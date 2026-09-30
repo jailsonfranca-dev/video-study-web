@@ -4,7 +4,7 @@ import {
 
 import {
     ThemeContext
-} from '../contexts/ThemeContext';
+} from '../contexts/theme-context';
 
 
 export function useTheme() {
@@ -15,7 +15,10 @@ export function useTheme() {
         );
 
 
-    if (!context) {
+    if (
+        context ===
+        undefined
+    ) {
 
         throw new Error(
             'useTheme deve ser usado dentro de ThemeProvider.'

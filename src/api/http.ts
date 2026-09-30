@@ -1,40 +1,382 @@
 import {
+    clearAccessToken,
     getAccessToken
-} from '../auth/tokenStorage';
+} from '../auth/authSession';
 
 
-interface ApiErrorResponse {
-    error?: string;
-    message?: string;
+const API_PREFIX =
+    '/api';
+
+
+let redirectingToLogin =
+    false;
+
+
+/*
+ * =========================================
+ * OPTIONS
+ * =========================================
+ */
+
+interface ApiFetchOptions
+    extends RequestInit {
+
+    auth?:
+        boolean;
+
+    redirectOnUnauthorized?:
+        boolean;
+
 }
 
 
+/*
+ * =========================================
+ * ERRO DA API
+ * =========================================
+ */
+
+interface ApiErrorResponse {
+
+    error?:
+        string;
+
+    message?:
+        string;
+
+}
+
+
+/*
+ * =========================================
+ * REDIRECIONAR PARA LOGIN
+ * =========================================
+ */
+
+function handleUnauthorized() {
+
+    clearAccessToken();
+
+
+    if (
+        redirectingToLogin
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        window.location.pathname ===
+        '/login'
+    ) {
+
+        return;
+
+    }
+
+
+    redirectingToLogin =
+        true;
+
+
+    window.location.replace(
+        '/login'
+    );
+
+}
+
+
+/*
+ * =========================================
+ * LER CORPO DA RESPOSTA COM SEGURANÇA
+ * =========================================
+ *
+ * Não usamos response.json() diretamente.
+ *
+ * Primeiro lemos como texto.
+ *
+ * Isso evita:
+ *
+ * Unexpected end of JSON input
+ *
+ * quando o backend retorna corpo vazio.
+ */
+
+async function readResponseBody<T>(
+    response:
+        Response
+): Promise<T | string | undefined> {
+
+    const text =
+        await response.text();
+
+
+    /*
+     * Corpo vazio.
+     */
+    if (
+        !text.trim()
+    ) {
+
+        return undefined;
+
+    }
+
+
+    const contentType =
+        response
+            .headers
+            .get(
+                'content-type'
+            );
+
+
+    /*
+     * JSON
+     */
+    if (
+        contentType
+            ?.includes(
+                'application/json'
+            )
+    ) {
+
+        try {
+
+            return JSON.parse(
+                text
+            ) as T;
+
+
+        } catch {
+
+            /*
+             * O servidor disse que era JSON,
+             * mas retornou conteúdo inválido.
+             */
+
+            throw new Error(
+                'O servidor retornou uma resposta JSON inválida.'
+            );
+
+        }
+
+    }
+
+
+    /*
+     * Texto normal.
+     */
+    return text;
+
+}
+
+
+/*
+ * =========================================
+ * EXTRAIR MENSAGEM DE ERRO
+ * =========================================
+ */
+
+function getErrorMessage(
+
+    body:
+        unknown,
+
+    status:
+        number
+
+) {
+
+    if (
+        typeof body ===
+        'string' &&
+        body.trim()
+    ) {
+
+        return body;
+
+    }
+
+
+    if (
+        body &&
+        typeof body ===
+        'object'
+    ) {
+
+        const apiError =
+            body as
+                ApiErrorResponse;
+
+
+        if (
+            apiError.error
+        ) {
+
+            return apiError.error;
+
+        }
+
+
+        if (
+            apiError.message
+        ) {
+
+            return apiError.message;
+
+        }
+
+    }
+
+
+    if (
+        status ===
+        401
+    ) {
+
+        return (
+            'Sua sessão expirou. Faça login novamente.'
+        );
+
+    }
+
+
+    if (
+        status ===
+        403
+    ) {
+
+        return (
+            'Você não tem permissão para realizar esta operação.'
+        );
+
+    }
+
+
+    if (
+        status ===
+        404
+    ) {
+
+        return (
+            'Recurso não encontrado.'
+        );
+
+    }
+
+
+    if (
+        status >=
+        500
+    ) {
+
+        return (
+            'Erro interno do servidor.'
+        );
+
+    }
+
+
+    return (
+        `Erro HTTP ${status}`
+    );
+
+}
+
+
+/*
+ * =========================================
+ * API FETCH
+ * =========================================
+ */
+
 export async function apiFetch<T>(
-    input: RequestInfo | URL,
-    init: RequestInit = {}
+
+    path:
+        string,
+
+    options:
+        ApiFetchOptions =
+        {}
+
 ): Promise<T> {
 
-    console.log(
-        'ENTROU apiFetch',
-        input
-    );
+    const {
+
+        auth =
+            true,
+
+        redirectOnUnauthorized =
+            true,
+
+        headers,
+
+        ...fetchOptions
+
+    } =
+        options;
+
+
+    /*
+     * =====================================
+     * TOKEN
+     * =====================================
+     */
 
     const token =
         getAccessToken();
 
 
-    const headers =
+    /*
+     * =====================================
+     * HEADERS
+     * =====================================
+     */
+
+    const requestHeaders =
         new Headers(
-            init.headers
+            headers
         );
 
 
     /*
-     * JWT da API.
+     * Só adicionamos Content-Type JSON
+     * quando existe body e ele não é FormData.
      */
-    if (token) {
+    if (
+        fetchOptions.body &&
+        !(
+            fetchOptions.body
+            instanceof FormData
+        ) &&
+        !requestHeaders.has(
+            'Content-Type'
+        )
+    ) {
 
-        headers.set(
+        requestHeaders.set(
+            'Content-Type',
+            'application/json'
+        );
+
+    }
+
+
+    /*
+     * =====================================
+     * AUTHORIZATION
+     * =====================================
+     */
+
+    if (
+        auth &&
+        token
+    ) {
+
+        requestHeaders.set(
             'Authorization',
             `Bearer ${token}`
         );
@@ -43,41 +385,113 @@ export async function apiFetch<T>(
 
 
     /*
-     * Se existe body e o Content-Type
-     * ainda não foi definido,
-     * assumimos JSON.
+     * =====================================
+     * REQUEST
+     * =====================================
      */
+
+    const response =
+        await fetch(
+
+            `${API_PREFIX}${path}`,
+
+            {
+
+                ...fetchOptions,
+
+                headers:
+                requestHeaders,
+
+                credentials:
+                    'include'
+
+            }
+
+        );
+
+
+    /*
+     * =====================================
+     * LER RESPOSTA
+     * =====================================
+     */
+
+    const body =
+        response.status ===
+        204
+
+            ? undefined
+
+            : await readResponseBody<T>(
+                response
+            );
+
+
+    /*
+     * =====================================
+     * 401
+     * =====================================
+     */
+
     if (
-        init.body &&
-        !headers.has(
-            'Content-Type'
-        )
+        response.status ===
+        401
     ) {
 
-        headers.set(
-            'Content-Type',
-            'application/json'
+        const message =
+            getErrorMessage(
+                body,
+                response.status
+            );
+
+
+        if (
+            redirectOnUnauthorized
+        ) {
+
+            handleUnauthorized();
+
+        }
+
+
+        throw new Error(
+            message
         );
 
     }
 
 
-    const response =
-        await fetch(
-            input,
-            {
-                ...init,
+    /*
+     * =====================================
+     * OUTROS ERROS
+     * =====================================
+     */
 
-                headers
-            }
+    if (
+        !response.ok
+    ) {
+
+        throw new Error(
+
+            getErrorMessage(
+                body,
+                response.status
+            )
+
         );
+
+    }
 
 
     /*
-     * 204 = sucesso sem conteúdo.
+     * =====================================
+     * 204
+     * =====================================
      */
+
     if (
-        response.status === 204
+        response.status ===
+        204
     ) {
 
         return undefined as T;
@@ -86,48 +500,21 @@ export async function apiFetch<T>(
 
 
     /*
-     * Tentamos interpretar a resposta.
+     * =====================================
+     * RESPOSTA VAZIA
+     * =====================================
      */
-    let data:
-        T | ApiErrorResponse | null =
-        null;
-
-
-    const contentType =
-        response.headers.get(
-            'content-type'
-        );
-
 
     if (
-        contentType?.includes(
-            'application/json'
-        )
+        body ===
+        undefined
     ) {
 
-        data =
-            await response.json();
+        return undefined as T;
 
     }
 
 
-    /*
-     * Erros HTTP.
-     */
-    if (!response.ok) {
+    return body as T;
 
-        const errorData =
-            data as ApiErrorResponse | null;
-
-
-        throw new Error(
-            errorData?.error ??
-            errorData?.message ??
-            `Erro HTTP ${response.status}`
-        );
-
-    }
-
-
-    return data as T;
 }

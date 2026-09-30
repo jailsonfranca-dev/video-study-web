@@ -1,25 +1,25 @@
 import {
     createContext,
     useEffect,
-    useState
-} from 'react';
-
-import type {
-    ReactNode
+    useState,
+    type ReactNode
 } from 'react';
 
 import {
     clearAccessToken,
-    getAccessToken,
-    saveAccessToken
-} from '../auth/tokenStorage';
+    getAccessToken
+} from '../auth/authSession';
 
+import {
+    createMediaSession,
+    getMe,
+    login as loginRequest,
+    removeMediaSession
+} from '../api/authApi';
 
-interface User {
-    id: string;
-    name?: string;
-    email: string;
-}
+import type {
+    User
+} from '../api/authApi';
 
 
 interface AuthContextValue {
@@ -41,6 +41,7 @@ interface AuthContextValue {
 
     logout:
         () => Promise<void>;
+
 }
 
 
@@ -53,13 +54,24 @@ export const AuthContext =
 
 
 interface AuthProviderProps {
-    children: ReactNode;
+
+    children:
+        ReactNode;
+
 }
 
 
 export function AuthProvider({
+
                                  children
+
                              }: AuthProviderProps) {
+
+    /*
+     * =========================================
+     * TOKEN
+     * =========================================
+     */
 
     const [
         token,
@@ -70,6 +82,12 @@ export function AuthProvider({
         );
 
 
+    /*
+     * =========================================
+     * USER
+     * =========================================
+     */
+
     const [
         user,
         setUser
@@ -78,6 +96,12 @@ export function AuthProvider({
             null
         );
 
+
+    /*
+     * =========================================
+     * RESTAURANDO SESSÃO
+     * =========================================
+     */
 
     const [
         restoring,
@@ -89,14 +113,16 @@ export function AuthProvider({
 
 
     /*
-     * Executado uma vez quando
-     * o React inicializa.
+     * =========================================
+     * RESTAURAR SESSÃO AO ABRIR O APP
+     * =========================================
      */
+
     useEffect(
         () => {
 
-            const controller =
-                new AbortController();
+            let active =
+                true;
 
 
             async function restoreSession() {
@@ -105,49 +131,66 @@ export function AuthProvider({
                     getAccessToken();
 
 
-                if (!storedToken) {
+                /*
+                 * Não existe JWT salvo.
+                 */
+                if (
+                    !storedToken
+                ) {
 
-                    setRestoring(
-                        false
-                    );
+                    if (
+                        active
+                    ) {
 
-                    return;
-                }
-
-
-                try {
-
-                    const response =
-                        await fetch(
-                            '/auth/me',
-                            {
-                                headers: {
-                                    Authorization:
-                                        `Bearer ${storedToken}`
-                                },
-
-                                signal:
-                                controller.signal
-                            }
+                        setToken(
+                            null
                         );
 
+                        setUser(
+                            null
+                        );
 
-                    if (!response.ok) {
-
-                        throw new Error(
-                            'Sessão expirada.'
+                        setRestoring(
+                            false
                         );
 
                     }
 
 
-                    const data =
-                        await response.json();
+                    return;
 
+                }
+
+
+                try {
+
+                    /*
+                     * =================================
+                     * VALIDAR TOKEN
+                     * =================================
+                     *
+                     * getMe() usa apiFetch().
+                     *
+                     * Portanto:
+                     *
+                     * /auth/me
+                     *
+                     * vira:
+                     *
+                     * /api/auth/me
+                     */
 
                     const restoredUser =
-                        data.user ??
-                        data;
+                        await getMe();
+
+
+                    if (
+                        !active
+                    ) {
+
+                        return;
+
+                    }
 
 
                     setToken(
@@ -161,64 +204,61 @@ export function AuthProvider({
 
 
                     /*
-                     * Renova/recria também
-                     * o cookie HttpOnly usado
-                     * pelo <video>.
+                     * =================================
+                     * RECRIAR COOKIE DE MÍDIA
+                     * =================================
                      */
-                    const mediaResponse =
-                        await fetch(
-                            '/auth/media-session',
-                            {
-                                method:
-                                    'POST',
 
-                                headers: {
-                                    Authorization:
-                                        `Bearer ${storedToken}`
-                                },
-
-                                signal:
-                                controller.signal
-                            }
-                        );
+                    await createMediaSession();
 
 
-                    if (!mediaResponse.ok) {
-
-                        throw new Error(
-                            'Não foi possível restaurar a sessão de mídia.'
-                        );
-
-                    }
-
-
-                } catch (error) {
-
-                    if (
-                        error instanceof DOMException &&
-                        error.name ===
-                        'AbortError'
+                } catch (
+                    error
                     ) {
 
-                        return;
-                    }
-
+                    /*
+                     * A chamada pode ter recebido 401.
+                     *
+                     * apiFetch() já limpa o token
+                     * automaticamente.
+                     */
 
                     clearAccessToken();
 
-                    setToken(
-                        null
-                    );
 
-                    setUser(
-                        null
-                    );
+                    if (
+                        active
+                    ) {
 
+                        setToken(
+                            null
+                        );
+
+                        setUser(
+                            null
+                        );
+
+                    }
+
+
+                    /*
+                     * Não precisamos jogar o erro
+                     * novamente.
+                     *
+                     * Uma sessão expirada simplesmente
+                     * significa que o usuário deverá
+                     * fazer login novamente.
+                     */
+
+                    console.warn(
+                        'Não foi possível restaurar a sessão.',
+                        error
+                    );
 
                 } finally {
 
                     if (
-                        !controller.signal.aborted
+                        active
                     ) {
 
                         setRestoring(
@@ -228,15 +268,17 @@ export function AuthProvider({
                     }
 
                 }
+
             }
 
 
-            restoreSession();
+            void restoreSession();
 
 
             return () => {
 
-                controller.abort();
+                active =
+                    false;
 
             };
 
@@ -245,146 +287,163 @@ export function AuthProvider({
     );
 
 
+    /*
+     * =========================================
+     * LOGIN
+     * =========================================
+     */
+
     async function login(
-        email: string,
-        password: string
+
+        email:
+            string,
+
+        password:
+            string
+
     ) {
 
+        /*
+         * loginRequest() usa:
+         *
+         * apiFetch('/auth/login')
+         *
+         * que vira:
+         *
+         * /api/auth/login
+         *
+         * O próprio authApi salva o JWT
+         * em sessionStorage.
+         */
+
         const response =
-            await fetch(
-                '/auth/login',
-                {
-                    method:
-                        'POST',
+            await loginRequest({
 
-                    headers: {
-                        'Content-Type':
-                            'application/json'
-                    },
+                email,
 
-                    body:
-                        JSON.stringify({
-                            email,
-                            password
-                        })
-                }
-            );
+                password
+
+            });
 
 
-        const data =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.error ??
-                'Não foi possível entrar.'
-            );
-
-        }
-
-
-        const accessToken =
-            data.token;
-
-
-        saveAccessToken(
-            accessToken
-        );
-
+        /*
+         * Atualiza imediatamente
+         * o estado do React.
+         */
 
         setToken(
-            accessToken
+            response.token
         );
 
 
         setUser(
-            data.user
+            response.user
         );
 
 
         /*
-         * Cookie HttpOnly
-         * usado pelo stream.
+         * =====================================
+         * COOKIE HTTPONLY DO STREAM
+         * =====================================
+         *
+         * O token já foi salvo pelo login,
+         * portanto createMediaSession()
+         * consegue enviar Authorization.
          */
-        await fetch(
-            '/auth/media-session',
-            {
-                method:
-                    'POST',
 
-                headers: {
-                    Authorization:
-                        `Bearer ${accessToken}`
-                }
-            }
-        );
+        await createMediaSession();
+
     }
 
+
+    /*
+     * =========================================
+     * LOGOUT
+     * =========================================
+     */
 
     async function logout() {
 
-        const currentToken =
-            token ??
-            getAccessToken();
+        try {
+
+            /*
+             * Remove primeiro o cookie
+             * HttpOnly usado pelo player.
+             */
+            await removeMediaSession();
 
 
-        if (currentToken) {
+        } catch (
+            error
+            ) {
 
-            try {
+            /*
+             * Logout local deve acontecer
+             * mesmo se o backend estiver
+             * indisponível ou o token
+             * já estiver expirado.
+             */
 
-                await fetch(
-                    '/auth/media-session',
-                    {
-                        method:
-                            'DELETE',
+            console.warn(
+                'Não foi possível remover a sessão de mídia.',
+                error
+            );
 
-                        headers: {
-                            Authorization:
-                                `Bearer ${currentToken}`
-                        }
-                    }
-                );
+        } finally {
 
-            } catch {
+            /*
+             * =================================
+             * LIMPAR SESSÃO LOCAL
+             * =================================
+             */
 
-                /*
-                 * Mesmo que o backend
-                 * esteja indisponível,
-                 * removemos a sessão local.
-                 */
+            clearAccessToken();
 
-            }
+
+            setToken(
+                null
+            );
+
+
+            setUser(
+                null
+            );
 
         }
 
-
-        clearAccessToken();
-
-        setToken(
-            null
-        );
-
-        setUser(
-            null
-        );
     }
 
 
+    /*
+     * =========================================
+     * PROVIDER
+     * =========================================
+     */
+
     return (
+
         <AuthContext.Provider
+
             value={{
+
                 user,
+
                 token,
+
                 restoring,
+
                 login,
+
                 logout
+
             }}
+
         >
 
             {children}
 
         </AuthContext.Provider>
+
     );
+
 }

@@ -574,7 +574,7 @@ export function VideoPlayer({
                     <source
 
                         src={
-                            `/library/videos/${video.id}/stream`
+                            `/api/library/videos/${video.id}/stream`
                         }
 
                         type={
