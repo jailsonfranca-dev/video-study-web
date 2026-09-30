@@ -14,7 +14,8 @@ import {
     getStudySessions,
     syncGoogleDrive,
     updateWeeklyGoal,
-    updateStudyTimeGoal
+    updateStudyTimeGoal,
+    getSessionStats
 } from '../api/dashboardApi';
 
 import type {
@@ -24,7 +25,8 @@ import type {
     ContinueStudyingVideo,
     RecentActivityItem,
     StudyTimeMetrics,
-    StudySessionItem
+    StudySessionItem,
+    SessionStats
 } from '../types/dashboard';
 
 import {
@@ -59,6 +61,10 @@ import {
     formatStudyTime
 } from '../utils/formatStudyTime';
 
+import {
+    SessionWeeklyChart
+} from '../components/dashboard/SessionWeeklyChart';
+
 import '../components/dashboard/DashboardPage.css';
 
 
@@ -85,6 +91,14 @@ export function DashboardPage() {
     ] =
         useState(
             ''
+        );
+
+    const [
+        sessionStats,
+        setSessionStats
+    ] =
+        useState<SessionStats | null>(
+            null
         );
 
 
@@ -268,7 +282,8 @@ export function DashboardPage() {
                     continueResult,
                     recentActivityResult,
                     studyTimeResult,
-                    studySessionsResult
+                    studySessionsResult,
+                    sessionStatsResult
                 ] =
                     await Promise.all([
 
@@ -294,6 +309,10 @@ export function DashboardPage() {
 
                         getStudySessions(
                             20,
+                            signal
+                        ),
+
+                        getSessionStats(
                             signal
                         )
 
@@ -340,6 +359,10 @@ export function DashboardPage() {
                 setStudySessions(
                     studySessionsResult?.sessions ??
                     []
+                );
+
+                setSessionStats(
+                    sessionStatsResult
                 );
 
             },
@@ -917,6 +940,41 @@ export function DashboardPage() {
                     '2-digit'
 
             }
+        );
+
+    }
+
+    /*
+     * =====================================
+     * horário favorito
+     * =====================================
+     */
+
+    function formatFavoriteStudyHour(
+        hour:
+            number | null
+    ) {
+
+        if (
+            hour === null ||
+            hour === undefined
+        ) {
+
+            return '—';
+
+        }
+
+
+        const nextHour =
+            (
+                hour + 1
+            ) % 24;
+
+
+        return (
+            `${String(hour).padStart(2, '0')}h` +
+            '–' +
+            `${String(nextHour).padStart(2, '0')}h`
         );
 
     }
@@ -1554,6 +1612,172 @@ export function DashboardPage() {
                     studySessions
                 }
             />
+
+            {
+                sessionStats && (
+
+                    <section className="session-stats-grid">
+
+                        <article className="dashboard-stat-card">
+
+                <span>
+                    Sessões hoje
+                </span>
+
+                            <strong>
+
+                                {
+                                    sessionStats
+                                        .today
+                                        .sessions
+                                }
+
+                            </strong>
+
+                            <small>
+
+                                {
+                                    sessionStats
+                                        .today
+                                        .sessions ===
+                                    1
+
+                                        ? 'sessão registrada'
+
+                                        : 'sessões registradas'
+                                }
+
+                            </small>
+
+                        </article>
+
+
+                        <article className="dashboard-stat-card">
+
+                <span>
+                    Sessões na semana
+                </span>
+
+                            <strong>
+
+                                {
+                                    sessionStats
+                                        .week
+                                        .sessions
+                                }
+
+                            </strong>
+
+                            <small>
+                                desde segunda-feira
+                            </small>
+
+                        </article>
+
+
+                        <article className="dashboard-stat-card">
+
+                <span>
+                    Média por sessão
+                </span>
+
+                            <strong>
+
+                                {
+                                    formatStudyTime(
+                                        sessionStats
+                                            .averageSessionSeconds
+                                    )
+                                }
+
+                            </strong>
+
+                            <small>
+                                tempo médio estudado
+                            </small>
+
+                        </article>
+
+
+                        <article className="dashboard-stat-card">
+
+                <span>
+                    Maior sessão
+                </span>
+
+                            <strong>
+
+                                {
+                                    formatStudyTime(
+                                        sessionStats
+                                            .longestSessionSeconds
+                                    )
+                                }
+
+                            </strong>
+
+                            <small>
+                                sua sessão mais longa
+                            </small>
+
+                        </article>
+
+
+                        <article className="dashboard-stat-card">
+
+                <span>
+                    Horário mais estudado
+                </span>
+
+                            <strong>
+
+                                {
+                                    formatFavoriteStudyHour(
+                                        sessionStats
+                                            .favoriteStudyHour
+                                            .hour
+                                    )
+                                }
+
+                            </strong>
+
+                            <small>
+
+                                {
+                                    sessionStats
+                                        .favoriteStudyHour
+                                        .hour !==
+                                    null
+
+                                        ? `${formatStudyTime(
+                                            sessionStats
+                                                .favoriteStudyHour
+                                                .seconds
+                                        )} estudados`
+
+                                        : 'sem dados ainda'
+                                }
+
+                            </small>
+
+                        </article>
+
+                    </section>
+
+                )
+            }
+
+            {
+                sessionStats && (
+
+                    <SessionWeeklyChart
+                        days={
+                            sessionStats.weekDays
+                        }
+                    />
+
+                )
+            }
 
 
             {/*

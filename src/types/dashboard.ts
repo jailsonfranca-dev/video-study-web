@@ -338,4 +338,54 @@ export interface StudySessionsResponse {
 
 }
 
+export interface SessionStatsDay {
+
+    date: string;
+
+    day:
+        | 'seg'
+        | 'ter'
+        | 'qua'
+        | 'qui'
+        | 'sex'
+        | 'sab'
+        | 'dom';
+
+    sessions: number;
+
+}
+
+
+export interface SessionStats {
+
+    today: {
+
+        sessions: number;
+
+    };
+
+    week: {
+
+        sessions: number;
+
+    };
+
+    averageSessionSeconds: number;
+
+    longestSessionSeconds: number;
+
+    favoriteStudyHour: {
+
+        hour:
+            number | null;
+
+        seconds: number;
+
+    };
+
+    weekDays:
+        SessionStatsDay[];
+
+}
+
 

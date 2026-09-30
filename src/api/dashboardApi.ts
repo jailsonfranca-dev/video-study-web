@@ -14,7 +14,8 @@ import type {
     RecentActivityResponse,
     StudyTimeMetrics,
     UpdateStudyTimeGoalResponse,
-    StudySessionsResponse
+    StudySessionsResponse,
+    SessionStats
 
 } from '../types/dashboard';
 
@@ -188,6 +189,19 @@ export function getStudySessions(
 
     return apiFetch<StudySessionsResponse>(
         `/dashboard/study-sessions?${params.toString()}`,
+        {
+            signal
+        }
+    );
+
+}
+
+export function getSessionStats(
+    signal?: AbortSignal
+) {
+
+    return apiFetch<SessionStats>(
+        '/dashboard/session-stats',
         {
             signal
         }
