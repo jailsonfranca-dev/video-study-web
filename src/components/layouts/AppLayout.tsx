@@ -4,7 +4,7 @@ import {
 
 import {
     AppHeader
-} from '../components/AppHeader';
+} from '../AppHeader.tsx';
 
 
 export function AppLayout() {

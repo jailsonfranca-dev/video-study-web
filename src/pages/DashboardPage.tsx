@@ -65,6 +65,18 @@ import {
     SessionWeeklyChart
 } from '../components/dashboard/SessionWeeklyChart';
 
+import {
+    DashboardSectionHeader
+} from '../components/dashboard/DashboardSectionHeader';
+
+import {
+    DashboardEmptyState
+} from '../components/dashboard/DashboardEmptyState';
+
+import {
+    DashboardSkeleton
+} from '../components/dashboard/DashboardSkeleton';
+
 import '../components/dashboard/DashboardPage.css';
 
 
@@ -93,14 +105,6 @@ export function DashboardPage() {
             ''
         );
 
-    const [
-        sessionStats,
-        setSessionStats
-    ] =
-        useState<SessionStats | null>(
-            null
-        );
-
 
     const [
         savingWeeklyGoal,
@@ -108,6 +112,21 @@ export function DashboardPage() {
     ] =
         useState(
             false
+        );
+
+
+    /*
+     * =====================================
+     * MÉTRICAS DE SESSÕES
+     * =====================================
+     */
+
+    const [
+        sessionStats,
+        setSessionStats
+    ] =
+        useState<SessionStats | null>(
+            null
         );
 
 
@@ -285,6 +304,7 @@ export function DashboardPage() {
                     studySessionsResult,
                     sessionStatsResult
                 ] =
+
                     await Promise.all([
 
                         getDashboardSummary(
@@ -360,6 +380,7 @@ export function DashboardPage() {
                     studySessionsResult?.sessions ??
                     []
                 );
+
 
                 setSessionStats(
                     sessionStatsResult
@@ -494,7 +515,7 @@ export function DashboardPage() {
 
     /*
      * =====================================
-     * CARREGAR CALENDÁRIO
+     * CALENDÁRIO
      * =====================================
      */
 
@@ -577,7 +598,7 @@ export function DashboardPage() {
 
     /*
      * =====================================
-     * EDITAR META SEMANAL DE TEMPO
+     * META SEMANAL DE TEMPO
      * =====================================
      */
 
@@ -729,7 +750,7 @@ export function DashboardPage() {
 
     /*
      * =====================================
-     * EDITAR META SEMANAL DE AULAS
+     * META SEMANAL DE AULAS
      * =====================================
      */
 
@@ -893,15 +914,6 @@ export function DashboardPage() {
         }
 
 
-        /*
-         * Aceita tanto:
-         *
-         * 2026-09-29
-         *
-         * quanto:
-         *
-         * 2026-09-29T00:00:00.000Z
-         */
         const datePart =
             dateValue.slice(
                 0,
@@ -944,9 +956,10 @@ export function DashboardPage() {
 
     }
 
+
     /*
      * =====================================
-     * horário favorito
+     * FORMATAR HORÁRIO FAVORITO
      * =====================================
      */
 
@@ -1058,9 +1071,7 @@ export function DashboardPage() {
 
             <div className="dashboard-page">
 
-                <p>
-                    Carregando dashboard...
-                </p>
+                <DashboardSkeleton />
 
             </div>
 
@@ -1111,9 +1122,15 @@ export function DashboardPage() {
 
             {/*
              * =================================
-             * CARDS PRINCIPAIS
+             * VISÃO GERAL
              * =================================
              */}
+
+            <DashboardSectionHeader
+                title="Visão geral"
+                description="Resumo do seu progresso e desempenho nos estudos."
+            />
+
 
             {
                 summary && (
@@ -1180,17 +1197,24 @@ export function DashboardPage() {
                                     Meta semanal
                                 </span>
 
+
                                 {
                                     !editingWeeklyGoal && (
 
                                         <button
+
                                             type="button"
+
                                             className="weekly-goal-edit-button"
+
                                             onClick={
                                                 handleStartWeeklyGoalEdit
                                             }
+
                                         >
+
                                             Editar
+
                                         </button>
 
                                     )
@@ -1206,35 +1230,47 @@ export function DashboardPage() {
                                         <div className="weekly-goal-form">
 
                                             <input
+
                                                 type="number"
+
                                                 min="1"
+
                                                 max="100"
+
                                                 value={
                                                     weeklyGoalInput
                                                 }
+
                                                 onChange={
                                                     event =>
                                                         setWeeklyGoalInput(
                                                             event.target.value
                                                         )
                                                 }
+
                                                 disabled={
                                                     savingWeeklyGoal
                                                 }
+
                                                 autoFocus
+
                                             />
 
 
                                             <div className="weekly-goal-actions">
 
                                                 <button
+
                                                     type="button"
+
                                                     onClick={
                                                         handleSaveWeeklyGoal
                                                     }
+
                                                     disabled={
                                                         savingWeeklyGoal
                                                     }
+
                                                 >
 
                                                     {
@@ -1247,15 +1283,21 @@ export function DashboardPage() {
 
 
                                                 <button
+
                                                     type="button"
+
                                                     onClick={
                                                         handleCancelWeeklyGoalEdit
                                                     }
+
                                                     disabled={
                                                         savingWeeklyGoal
                                                     }
+
                                                 >
+
                                                     Cancelar
+
                                                 </button>
 
                                             </div>
@@ -1290,8 +1332,10 @@ export function DashboardPage() {
 
                                                 <div
                                                     style={{
+
                                                         width:
                                                             `${summary.weeklyGoal.progressPercent}%`
+
                                                     }}
                                                 />
 
@@ -1382,6 +1426,7 @@ export function DashboardPage() {
                                     '↑ '
                                 }
 
+
                                 {
                                     summary
                                         .comparison
@@ -1390,6 +1435,7 @@ export function DashboardPage() {
                                     &&
                                     '↓ '
                                 }
+
 
                                 {
                                     summary
@@ -1400,6 +1446,7 @@ export function DashboardPage() {
                                     '→ '
                                 }
 
+
                                 {
                                     summary
                                         .comparison
@@ -1408,6 +1455,7 @@ export function DashboardPage() {
                                         ? '+'
                                         : ''
                                 }
+
 
                                 {
                                     summary
@@ -1476,8 +1524,10 @@ export function DashboardPage() {
 
                                 <div
                                     style={{
+
                                         width:
                                             `${summary.library.progressPercent}%`
+
                                     }}
                                 />
 
@@ -1514,7 +1564,7 @@ export function DashboardPage() {
 
             {/*
              * =================================
-             * GRÁFICO DE AULAS + CALENDÁRIO
+             * GRÁFICO + CALENDÁRIO
              * =================================
              */}
 
@@ -1548,81 +1598,133 @@ export function DashboardPage() {
 
             {/*
              * =================================
-             * GOOGLE DRIVE
+             * ESTUDOS
              * =================================
              */}
 
-            <DriveSyncCard
-
-                syncing={
-                    syncing
-                }
-
-                message={
-                    syncMessage
-                }
-
-                onSync={
-                    handleSync
-                }
-
+            <DashboardSectionHeader
+                title="Estudos"
+                description="Retome suas aulas e acompanhe suas atividades mais recentes."
             />
+
+
+            {
+                continueVideos.length > 0
+                    ? (
+
+                        <ContinueStudying
+                            videos={
+                                continueVideos
+                            }
+                        />
+
+                    )
+                    : (
+
+                        <DashboardEmptyState
+
+                            icon="▶️"
+
+                            title="Nenhuma aula em andamento"
+
+                            description="Você ainda não iniciou nenhuma aula ou já concluiu todas as aulas iniciadas."
+
+                            actionLabel="Ir para a Biblioteca"
+
+                            actionTo="/library"
+
+                        />
+
+                    )
+            }
+
+
+            {
+                recentActivities.length > 0
+                    ? (
+
+                        <RecentActivity
+                            activities={
+                                recentActivities
+                            }
+                        />
+
+                    )
+                    : (
+
+                        <DashboardEmptyState
+
+                            icon="🕘"
+
+                            title="Nenhuma atividade recente"
+
+                            description="Quando você começar ou concluir uma aula, sua atividade aparecerá aqui."
+
+                            actionLabel="Escolher uma aula"
+
+                            actionTo="/library"
+
+                        />
+
+                    )
+            }
 
 
             {/*
              * =================================
-             * CONTINUAR ESTUDANDO
-             * =================================
-             *
-             * IMPORTANTE:
-             * agora existe apenas UMA vez.
-             */}
-
-            <ContinueStudying
-                videos={
-                    continueVideos
-                }
-            />
-
-
-            {/*
-             * =================================
-             * ATIVIDADE RECENTE
-             * =================================
-             *
-             * IMPORTANTE:
-             * agora existe apenas UMA vez.
-             */}
-
-            <RecentActivity
-                activities={
-                    recentActivities
-                }
-            />
-
-
-            {/*
-             * =================================
-             * HISTÓRICO DE SESSÕES
+             * SESSÕES DE ESTUDO
              * =================================
              */}
 
-            <StudySessionHistory
-                sessions={
-                    studySessions
-                }
+            <DashboardSectionHeader
+                title="Sessões de estudo"
+                description="Acompanhe quando e por quanto tempo você realmente estudou."
             />
+
+
+            {
+                studySessions.length > 0
+                    ? (
+
+                        <StudySessionHistory
+                            sessions={
+                                studySessions
+                            }
+                        />
+
+                    )
+                    : (
+
+                        <DashboardEmptyState
+
+                            icon="⏱️"
+
+                            title="Nenhuma sessão registrada"
+
+                            description="Assista a uma aula por alguns segundos para começar seu histórico de sessões de estudo."
+
+                            actionLabel="Começar a estudar"
+
+                            actionTo="/library"
+
+                        />
+
+                    )
+            }
+
 
             {
                 sessionStats && (
 
                     <section className="session-stats-grid">
 
+                        {/* SESSÕES HOJE */}
+
                         <article className="dashboard-stat-card">
 
-                <span>
-                    Sessões hoje
-                </span>
+                            <span>
+                                Sessões hoje
+                            </span>
 
                             <strong>
 
@@ -1652,11 +1754,13 @@ export function DashboardPage() {
                         </article>
 
 
+                        {/* SESSÕES SEMANA */}
+
                         <article className="dashboard-stat-card">
 
-                <span>
-                    Sessões na semana
-                </span>
+                            <span>
+                                Sessões na semana
+                            </span>
 
                             <strong>
 
@@ -1675,11 +1779,13 @@ export function DashboardPage() {
                         </article>
 
 
+                        {/* MÉDIA */}
+
                         <article className="dashboard-stat-card">
 
-                <span>
-                    Média por sessão
-                </span>
+                            <span>
+                                Média por sessão
+                            </span>
 
                             <strong>
 
@@ -1699,11 +1805,13 @@ export function DashboardPage() {
                         </article>
 
 
+                        {/* MAIOR SESSÃO */}
+
                         <article className="dashboard-stat-card">
 
-                <span>
-                    Maior sessão
-                </span>
+                            <span>
+                                Maior sessão
+                            </span>
 
                             <strong>
 
@@ -1723,11 +1831,13 @@ export function DashboardPage() {
                         </article>
 
 
+                        {/* HORÁRIO FAVORITO */}
+
                         <article className="dashboard-stat-card">
 
-                <span>
-                    Horário mais estudado
-                </span>
+                            <span>
+                                Horário mais estudado
+                            </span>
 
                             <strong>
 
@@ -1767,6 +1877,7 @@ export function DashboardPage() {
                 )
             }
 
+
             {
                 sessionStats && (
 
@@ -1782,18 +1893,22 @@ export function DashboardPage() {
 
             {/*
              * =================================
-             * MÉTRICAS DE TEMPO
+             * TEMPO DE ESTUDO
              * =================================
              */}
+
+            <DashboardSectionHeader
+                title="Tempo de estudo"
+                description="Veja o tempo efetivo dedicado aos seus estudos."
+            />
+
 
             {
                 studyTime && (
 
                     <section className="study-time-stats">
 
-                        {/*
-                         * META SEMANAL DE TEMPO
-                         */}
+                        {/* META SEMANAL DE TEMPO */}
 
                         <article className="dashboard-stat-card">
 
@@ -1971,6 +2086,7 @@ export function DashboardPage() {
                                                         }
 
                                                         style={{
+
                                                             width:
                                                                 `${Math.min(
                                                                     studyTime
@@ -1978,6 +2094,7 @@ export function DashboardPage() {
                                                                         .progressPercent,
                                                                     100
                                                                 )}%`
+
                                                         }}
 
                                                     />
@@ -2047,9 +2164,7 @@ export function DashboardPage() {
                         </article>
 
 
-                        {/*
-                         * TEMPO HOJE
-                         */}
+                        {/* TEMPO HOJE */}
 
                         <article className="dashboard-stat-card">
 
@@ -2076,9 +2191,7 @@ export function DashboardPage() {
                         </article>
 
 
-                        {/*
-                         * ESTA SEMANA
-                         */}
+                        {/* ESTA SEMANA */}
 
                         <article className="dashboard-stat-card">
 
@@ -2105,9 +2218,7 @@ export function DashboardPage() {
                         </article>
 
 
-                        {/*
-                         * TEMPO TOTAL
-                         */}
+                        {/* TEMPO TOTAL */}
 
                         <article className="dashboard-stat-card">
 
@@ -2134,9 +2245,7 @@ export function DashboardPage() {
                         </article>
 
 
-                        {/*
-                         * MÉDIA DIÁRIA
-                         */}
+                        {/* MÉDIA DIÁRIA */}
 
                         <article className="dashboard-stat-card">
 
@@ -2163,9 +2272,7 @@ export function DashboardPage() {
                         </article>
 
 
-                        {/*
-                         * MELHOR DIA
-                         */}
+                        {/* MELHOR DIA */}
 
                         <article className="dashboard-stat-card">
 
@@ -2207,7 +2314,7 @@ export function DashboardPage() {
 
             {/*
              * =================================
-             * GRÁFICO DE TEMPO ESTUDADO
+             * GRÁFICO DE TEMPO
              * =================================
              */}
 
@@ -2222,6 +2329,35 @@ export function DashboardPage() {
 
                 )
             }
+
+
+            {/*
+             * =================================
+             * BIBLIOTECA
+             * =================================
+             */}
+
+            <DashboardSectionHeader
+                title="Biblioteca"
+                description="Gerencie e mantenha sua biblioteca de aulas sincronizada."
+            />
+
+
+            <DriveSyncCard
+
+                syncing={
+                    syncing
+                }
+
+                message={
+                    syncMessage
+                }
+
+                onSync={
+                    handleSync
+                }
+
+            />
 
         </div>
 

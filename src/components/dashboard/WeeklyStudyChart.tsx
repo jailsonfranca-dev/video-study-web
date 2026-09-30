@@ -1,21 +1,12 @@
 import {
-
-    BarChart,
-
     Bar,
-
-    XAxis,
-
-    YAxis,
-
+    BarChart,
     CartesianGrid,
-
+    ResponsiveContainer,
     Tooltip,
-
-    ResponsiveContainer
-
+    XAxis,
+    YAxis
 } from 'recharts';
-
 
 import type {
     WeeklyActivityDay
@@ -31,26 +22,38 @@ interface WeeklyStudyChartProps {
 
 
 export function WeeklyStudyChart({
+
                                      days
+
                                  }: WeeklyStudyChartProps) {
+
+    const data =
+        days.map(
+            item => ({
+
+                ...item,
+
+                label:
+                    item.day
+                        .toUpperCase()
+
+            })
+        );
+
 
     return (
 
-        <div className="dashboard-chart">
+        <section className="dashboard-chart">
 
-            <div className="dashboard-section-header">
+            <div>
 
-                <div>
+                <h2>
+                    Aulas assistidas
+                </h2>
 
-                    <h2>
-                        Aulas assistidas
-                    </h2>
-
-                    <p>
-                        Conclusões durante esta semana
-                    </p>
-
-                </div>
+                <p>
+                    Conclusões durante esta semana
+                </p>
 
             </div>
 
@@ -63,65 +66,182 @@ export function WeeklyStudyChart({
                 >
 
                     <BarChart
+
                         data={
-                            days
+                            data
                         }
+
                         margin={{
-                            top:
-                                20,
-
-                            right:
-                                20,
-
-                            left:
-                                0,
-
-                            bottom:
-                                0
+                            top: 24,
+                            right: 12,
+                            left: -8,
+                            bottom: 0
                         }}
+
                     >
 
                         <CartesianGrid
+
+                            stroke={
+                                'var(--color-border)'
+                            }
+
                             strokeDasharray="3 3"
+
                             vertical={
                                 false
                             }
+
                         />
 
 
                         <XAxis
-                            dataKey="day"
+
+                            dataKey="label"
+
+                            axisLine={{
+                                stroke:
+                                    'var(--color-border)'
+                            }}
+
+                            tickLine={
+                                false
+                            }
+
+                            tick={{
+                                fill:
+                                    'var(--color-text-secondary)',
+
+                                fontSize:
+                                    12
+                            }}
+
                         />
 
 
                         <YAxis
+
                             allowDecimals={
                                 false
                             }
-                            width={
-                                35
+
+                            axisLine={
+                                false
                             }
+
+                            tickLine={
+                                false
+                            }
+
+                            tick={{
+                                fill:
+                                    'var(--color-text-secondary)',
+
+                                fontSize:
+                                    12
+                            }}
+
+                            domain={[
+                                0,
+                                'auto'
+                            ]}
+
                         />
 
 
                         <Tooltip
-                            formatter={
-                                value => [
-                                    `${value} aula${Number(value) === 1 ? '' : 's'}`,
-                                    'Concluídas'
-                                ]
-                            }
+
+                            cursor={{
+
+                                fill:
+                                    'var(--color-surface-secondary)',
+
+                                opacity:
+                                    0.7
+
+                            }}
+
+                            contentStyle={{
+
+                                background:
+                                    'var(--color-surface)',
+
+                                border:
+                                    '1px solid var(--color-border)',
+
+                                borderRadius:
+                                    '10px',
+
+                                color:
+                                    'var(--color-text-primary)',
+
+                                boxShadow:
+                                    'var(--shadow-md)'
+
+                            }}
+
+                            labelStyle={{
+
+                                color:
+                                    'var(--color-text-primary)',
+
+                                fontWeight:
+                                    700
+
+                            }}
+
+                            itemStyle={{
+
+                                color:
+                                    'var(--color-primary)'
+
+                            }}
+
+                            formatter={(
+                                value
+                            ) => [
+
+                                `${Number(value)} ${
+                                    Number(value) === 1
+                                        ? 'aula'
+                                        : 'aulas'
+                                }`,
+
+                                'Concluídas'
+
+                            ]}
+
                         />
 
 
                         <Bar
-                            dataKey="completed"
+
+                            dataKey="completedVideos"
+
+                            name="Aulas concluídas"
+
+                            fill={
+                                'var(--color-primary)'
+                            }
+
                             radius={[
-                                8,
-                                8,
+                                7,
+                                7,
                                 0,
                                 0
                             ]}
+
+                            maxBarSize={
+                                58
+                            }
+
+                            activeBar={{
+
+                                fill:
+                                    'var(--color-primary-hover)'
+
+                            }}
+
                         />
 
                     </BarChart>
@@ -130,7 +250,7 @@ export function WeeklyStudyChart({
 
             </div>
 
-        </div>
+        </section>
 
     );
 

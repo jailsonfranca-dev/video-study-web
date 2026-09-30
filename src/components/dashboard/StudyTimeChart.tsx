@@ -8,13 +8,23 @@ import {
     YAxis
 } from 'recharts';
 
-import type {
-    StudyTimeDay
-} from '../../types/dashboard';
-
 import {
     formatStudyTime
 } from '../../utils/formatStudyTime';
+
+
+interface StudyTimeDay {
+
+    date:
+        string;
+
+    day:
+        string;
+
+    seconds:
+        number;
+
+}
 
 
 interface StudyTimeChartProps {
@@ -31,22 +41,15 @@ export function StudyTimeChart({
 
                                }: StudyTimeChartProps) {
 
-
     const data =
         days.map(
             item => ({
 
                 ...item,
 
-                minutes:
-                    Number(
-                        (
-                            item.seconds /
-                            60
-                        ).toFixed(
-                            1
-                        )
-                    )
+                label:
+                    item.day
+                        .toUpperCase()
 
             })
         );
@@ -54,96 +57,210 @@ export function StudyTimeChart({
 
     return (
 
-        <section
-            className="dashboard-panel"
-        >
+        <section className="dashboard-chart">
 
-            <div
-                className="dashboard-section-header"
-            >
+            <div>
 
-                <div>
+                <h2>
+                    Tempo estudado
+                </h2>
 
-                    <h2>
-                        Tempo estudado
-                    </h2>
-
-                    <p>
-                        Minutos de estudo durante esta semana
-                    </p>
-
-                </div>
+                <p>
+                    Tempo efetivo de estudo durante a semana
+                </p>
 
             </div>
 
 
-            <div
-                className="dashboard-chart"
-            >
+            <div className="weekly-chart-container">
 
                 <ResponsiveContainer
                     width="100%"
-                    height={240}
+                    height="100%"
                 >
 
                     <BarChart
+
                         data={
                             data
                         }
+
+                        margin={{
+                            top: 24,
+                            right: 12,
+                            left: 4,
+                            bottom: 0
+                        }}
+
                     >
 
                         <CartesianGrid
+
+                            stroke={
+                                'var(--color-border)'
+                            }
+
                             strokeDasharray="3 3"
-                            vertical={false}
+
+                            vertical={
+                                false
+                            }
+
                         />
 
 
                         <XAxis
-                            dataKey="day"
-                        />
 
+                            dataKey="label"
 
-                        <YAxis
-                            allowDecimals={false}
-                        />
+                            axisLine={{
+                                stroke:
+                                    'var(--color-border)'
+                            }}
 
+                            tickLine={
+                                false
+                            }
 
-                        <Tooltip
+                            tick={{
+                                fill:
+                                    'var(--color-text-secondary)',
 
-                            formatter={(
-                                value
-                            ) => {
-
-                                const minutes =
-                                    Number(
-                                        value ??
-                                        0
-                                    );
-
-
-                                return [
-                                    formatStudyTime(
-                                        Math.round(
-                                            minutes *
-                                            60
-                                        )
-                                    ),
-                                    'Tempo estudado'
-                                ];
-
+                                fontSize:
+                                    12
                             }}
 
                         />
 
 
+                        <YAxis
+
+                            axisLine={
+                                false
+                            }
+
+                            tickLine={
+                                false
+                            }
+
+                            tick={{
+                                fill:
+                                    'var(--color-text-secondary)',
+
+                                fontSize:
+                                    12
+                            }}
+
+                            tickFormatter={
+                                value =>
+                                    formatStudyTime(
+                                        Number(
+                                            value
+                                        )
+                                    )
+                            }
+
+                            domain={[
+                                0,
+                                'auto'
+                            ]}
+
+                        />
+
+
+                        <Tooltip
+
+                            cursor={{
+
+                                fill:
+                                    'var(--color-surface-secondary)',
+
+                                opacity:
+                                    0.7
+
+                            }}
+
+                            contentStyle={{
+
+                                background:
+                                    'var(--color-surface)',
+
+                                border:
+                                    '1px solid var(--color-border)',
+
+                                borderRadius:
+                                    '10px',
+
+                                color:
+                                    'var(--color-text-primary)',
+
+                                boxShadow:
+                                    'var(--shadow-md)'
+
+                            }}
+
+                            labelStyle={{
+
+                                color:
+                                    'var(--color-text-primary)',
+
+                                fontWeight:
+                                    700
+
+                            }}
+
+                            itemStyle={{
+
+                                color:
+                                    'var(--color-success)'
+
+                            }}
+
+                            formatter={(
+                                value
+                            ) => [
+
+                                formatStudyTime(
+                                    Number(
+                                        value
+                                    )
+                                ),
+
+                                'Tempo estudado'
+
+                            ]}
+
+                        />
+
+
                         <Bar
-                            dataKey="minutes"
+
+                            dataKey="seconds"
+
+                            name="Tempo estudado"
+
+                            fill={
+                                'var(--color-success)'
+                            }
+
                             radius={[
-                                5,
-                                5,
+                                7,
+                                7,
                                 0,
                                 0
                             ]}
+
+                            maxBarSize={
+                                58
+                            }
+
+                            activeBar={{
+
+                                fill:
+                                    'var(--color-primary-hover)'
+
+                            }}
+
                         />
 
                     </BarChart>

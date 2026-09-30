@@ -1,9 +1,26 @@
+/* =========================================================
+   DASHBOARD PAGE
+========================================================= */
+
 .dashboard-page {
-    padding: 28px;
+    width: 100%;
+
     max-width: 1500px;
-    margin: 0 auto;
+
+    margin:
+            0 auto;
+
+    padding:
+            28px;
+
+    color:
+            var(--color-text-primary);
 }
 
+
+/* =========================================================
+   TITLE
+========================================================= */
 
 .dashboard-title {
     margin-bottom: 24px;
@@ -12,24 +29,58 @@
 
 .dashboard-title h1 {
     margin: 0;
+
+    color:
+            var(--color-text-primary);
+
     font-size: 32px;
+
+    line-height: 1.2;
 }
 
 
 .dashboard-title p {
-    margin-top: 6px;
-    opacity: 0.65;
+    margin:
+            6px 0 0;
+
+    color:
+            var(--color-text-secondary);
+
+    line-height: 1.5;
 }
 
+
+/* =========================================================
+   ERROR
+========================================================= */
 
 .dashboard-error {
     margin-bottom: 20px;
-    padding: 14px 16px;
+
+    padding:
+            14px 16px;
+
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--color-danger) 35%,
+                    transparent
+            );
+
     border-radius: 10px;
-    background: #fee2e2;
-    color: #991b1b;
+
+    background:
+            var(--color-danger-soft);
+
+    color:
+            var(--color-danger);
 }
 
+
+/* =========================================================
+   VISÃO GERAL — GRID
+========================================================= */
 
 .dashboard-stats {
     display: grid;
@@ -49,60 +100,112 @@
 }
 
 
+/* =========================================================
+   CARD PADRÃO
+========================================================= */
+
 .dashboard-stat-card {
     display: flex;
+
     flex-direction: column;
+
     gap: 7px;
+
+    min-width: 0;
 
     padding: 20px;
 
-    border: 1px solid #e5e7eb;
+    border:
+            1px solid
+            var(--color-border);
+
     border-radius: 14px;
 
-    background: #ffffff;
+    background:
+            var(--color-surface);
+
+    color:
+            var(--color-text-primary);
+
+    box-shadow:
+            var(--shadow-sm);
+
+    transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+}
+
+
+.dashboard-stat-card:hover {
+    border-color:
+            var(--color-border-strong);
+
+    box-shadow:
+            var(--shadow-md);
 }
 
 
 .dashboard-stat-card > span {
+    color:
+            var(--color-text-secondary);
+
     font-size: 14px;
-    opacity: 0.7;
 }
 
 
 .dashboard-stat-card strong {
+    color:
+            var(--color-text-primary);
+
     font-size: 28px;
+
+    line-height: 1.2;
 }
 
 
 .dashboard-stat-card small {
-    opacity: 0.65;
+    color:
+            var(--color-text-secondary);
+
+    line-height: 1.4;
 }
 
+
+/* =========================================================
+   PROGRESSO GERAL
+========================================================= */
 
 .dashboard-total-progress {
     height: 7px;
 
     margin-top: 8px;
 
-    border-radius: 999px;
-
     overflow: hidden;
 
-    background: #e5e7eb;
+    border-radius: 999px;
+
+    background:
+            var(--color-surface-tertiary);
 }
 
 
 .dashboard-total-progress > div {
     height: 100%;
 
-    background: #2563eb;
-
     border-radius: inherit;
+
+    background:
+            var(--color-primary);
 
     transition:
             width 0.3s ease;
 }
 
+
+/* =========================================================
+   GRÁFICO + CALENDÁRIO
+========================================================= */
 
 .dashboard-main-grid {
     display: grid;
@@ -127,54 +230,281 @@
 .study-calendar-card,
 .continue-studying-card,
 .drive-sync-card {
+    padding: 20px;
 
-    border: 1px solid #e5e7eb;
+    border:
+            1px solid
+            var(--color-border);
 
     border-radius: 14px;
 
-    background: #ffffff;
+    background:
+            var(--color-surface);
 
-    padding: 20px;
+    color:
+            var(--color-text-primary);
+
+    box-shadow:
+            var(--shadow-sm);
+
+    transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease;
 }
 
 
+/* =========================================================
+   CABEÇALHO INTERNO DE CARDS
+========================================================= */
+
+.dashboard-chart h2,
+.study-calendar-card h2,
+.continue-studying-card h2,
+.drive-sync-card h2,
+.recent-activity-card h2,
+.study-session-history-card h2 {
+    color:
+            var(--color-text-primary);
+}
+
+
+.dashboard-chart p,
+.study-calendar-card p,
+.continue-studying-card p,
+.drive-sync-card p,
+.recent-activity-card p,
+.study-session-history-card p {
+    color:
+            var(--color-text-secondary);
+}
+
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
 .dashboard-section-header {
+    margin-top: 36px;
+
     margin-bottom: 16px;
 }
 
 
+.dashboard-section-header:first-of-type {
+    margin-top: 20px;
+}
+
+
 .dashboard-section-header h2 {
+    margin: 0;
+
+    color:
+            var(--color-text-primary);
+
     font-size: 20px;
-    margin-top: 3rem;
+
+    font-weight: 700;
 }
 
 
 .dashboard-section-header p {
     margin:
-            4px
+            6px
             0
             0;
 
-    opacity: 0.65;
+    color:
+            var(--color-text-secondary);
+
+    font-size: 14px;
+
+    line-height: 1.5;
 }
 
 
+/* =========================================================
+   WEEKLY CHART
+========================================================= */
+
 .weekly-chart-container {
     width: 100%;
+
     height: 320px;
 }
 
 
+/* =========================================================
+   RECHARTS — DARK / LIGHT
+========================================================= */
+
+.dashboard-page
+.recharts-wrapper {
+    color:
+            var(--color-text-primary);
+}
+
+
+.dashboard-page
+.recharts-cartesian-grid line {
+    stroke:
+            var(--color-border) !important;
+}
+
+
+.dashboard-page
+.recharts-cartesian-axis-line,
+.dashboard-page
+.recharts-cartesian-axis-tick-line {
+    stroke:
+            var(--color-border-strong) !important;
+}
+
+
+.dashboard-page
+.recharts-text {
+    fill:
+            var(--color-text-secondary) !important;
+}
+
+
+.dashboard-page
+.recharts-cartesian-axis-tick-value {
+    fill:
+            var(--color-text-secondary) !important;
+}
+
+
+.dashboard-page
+.recharts-legend-item-text {
+    color:
+            var(--color-text-secondary) !important;
+}
+
+
+.dashboard-page
+.recharts-default-tooltip {
+    border:
+            1px solid
+            var(--color-border) !important;
+
+    border-radius:
+            10px !important;
+
+    background:
+            var(--color-surface) !important;
+
+    color:
+            var(--color-text-primary) !important;
+
+    box-shadow:
+            var(--shadow-md) !important;
+}
+
+
+.dashboard-page
+.recharts-tooltip-label,
+.dashboard-page
+.recharts-tooltip-item {
+    color:
+            var(--color-text-primary) !important;
+}
+
+
+/* =========================================================
+   CALENDAR
+========================================================= */
+
 .study-calendar-card {
     display: flex;
+
     flex-direction: column;
 }
 
 
-.study-calendar-card .rdp-root {
-    margin: 0 auto;
+.study-calendar-card
+.rdp-root {
+    margin:
+            0 auto;
+
+    color:
+            var(--color-text-primary);
+
+    --rdp-accent-color:
+            var(--color-primary);
+
+    --rdp-accent-background-color:
+            var(--color-primary-soft);
+
+    --rdp-today-color:
+            var(--color-primary);
+
+    --rdp-day_button-border-radius:
+            7px;
 }
 
+
+.study-calendar-card
+.rdp-month_caption {
+    color:
+            var(--color-text-primary);
+
+    font-weight: 700;
+}
+
+
+.study-calendar-card
+.rdp-weekday {
+    color:
+            var(--color-text-muted);
+}
+
+
+.study-calendar-card
+.rdp-day {
+    color:
+            var(--color-text-primary);
+}
+
+
+.study-calendar-card
+.rdp-day_button {
+    color:
+            inherit;
+}
+
+
+.study-calendar-card
+.rdp-button_previous,
+.study-calendar-card
+.rdp-button_next {
+    color:
+            var(--color-primary);
+}
+
+
+.study-calendar-card
+.rdp-button_previous:hover,
+.study-calendar-card
+.rdp-button_next:hover {
+    background:
+            var(--color-primary-soft);
+}
+
+
+.study-calendar-card
+.rdp-selected
+.rdp-day_button {
+    background:
+            var(--color-primary);
+
+    color:
+            #ffffff;
+}
+
+
+/* =========================================================
+   CALENDAR ACTIVITY
+========================================================= */
 
 .calendar-activity-low,
 .calendar-activity-medium,
@@ -184,33 +514,53 @@
 
 
 .calendar-activity-low {
-    background: #dbeafe;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 18%,
+                    var(--color-surface)
+            );
 }
 
 
 .calendar-activity-medium {
-    background: #93c5fd;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 45%,
+                    var(--color-surface)
+            );
 }
 
 
 .calendar-activity-high {
-    background: #2563eb;
-    color: white;
+    background:
+            var(--color-primary);
+
+    color:
+            #ffffff;
 }
 
 
+/* =========================================================
+   CALENDAR LEGEND
+========================================================= */
+
 .calendar-legend {
     display: flex;
-    justify-content: center;
+
     align-items: center;
+
+    justify-content: center;
 
     gap: 6px;
 
     margin-top: 12px;
 
-    font-size: 12px;
+    color:
+            var(--color-text-secondary);
 
-    opacity: 0.8;
+    font-size: 12px;
 }
 
 
@@ -225,22 +575,38 @@
 
 
 .calendar-level-1 {
-    background: #dbeafe;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 18%,
+                    var(--color-surface)
+            );
 }
 
 
 .calendar-level-2 {
-    background: #93c5fd;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 45%,
+                    var(--color-surface)
+            );
 }
 
 
 .calendar-level-3 {
-    background: #2563eb;
+    background:
+            var(--color-primary);
 }
 
 
+/* =========================================================
+   SELECTED CALENDAR DAY
+========================================================= */
+
 .calendar-selected-day {
     display: flex;
+
     justify-content: space-between;
 
     gap: 16px;
@@ -249,11 +615,23 @@
 
     padding: 12px;
 
+    border:
+            1px solid
+            var(--color-border);
+
     border-radius: 8px;
 
-    background: #f8fafc;
+    background:
+            var(--color-surface-secondary);
+
+    color:
+            var(--color-text-primary);
 }
 
+
+/* =========================================================
+   DRIVE SYNC
+========================================================= */
 
 .drive-sync-card {
     display: flex;
@@ -278,28 +656,78 @@
 
 .drive-sync-card p {
     margin: 0;
-
-    opacity: 0.7;
 }
 
 
 .drive-sync-card button {
+    min-height: 40px;
+
     padding:
-            11px
-            18px;
+            11px 18px;
+
+    border:
+            1px solid
+            var(--color-primary);
 
     border-radius: 9px;
 
-    cursor: pointer;
+    background:
+            var(--color-primary);
+
+    color:
+            #ffffff;
+
+    font-weight: 600;
 
     white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+            background-color 0.15s ease,
+            border-color 0.15s ease,
+            transform 0.15s ease;
+}
+
+
+.drive-sync-card button:hover:not(
+    :disabled
+) {
+    background:
+            var(--color-primary-hover);
+
+    border-color:
+            var(--color-primary-hover);
+}
+
+
+.drive-sync-card button:active:not(
+    :disabled
+) {
+    transform:
+            translateY(1px);
+}
+
+
+.drive-sync-card button:disabled {
+    opacity: 0.6;
+
+    cursor:
+            not-allowed;
 }
 
 
 .sync-message {
+    color:
+            var(--color-success);
+
     font-size: 13px;
 }
 
+
+/* =========================================================
+   CONTINUE STUDYING
+========================================================= */
 
 .continue-list {
     display: grid;
@@ -326,20 +754,24 @@
 
     gap: 18px;
 
-    padding: 14px 0;
+    padding:
+            14px 0;
 
     border-bottom:
-            1px solid #e5e7eb;
+            1px solid
+            var(--color-border);
 }
 
 
 .continue-item:last-child {
-    border-bottom: none;
+    border-bottom:
+            none;
 }
 
 
 .continue-info {
     display: flex;
+
     flex-direction: column;
 
     gap: 5px;
@@ -347,9 +779,10 @@
 
 
 .continue-info span {
-    font-size: 13px;
+    color:
+            var(--color-text-secondary);
 
-    opacity: 0.65;
+    font-size: 13px;
 }
 
 
@@ -360,163 +793,181 @@
 
     border-radius: 999px;
 
-    background: #e5e7eb;
+    background:
+            var(--color-surface-tertiary);
 }
 
 
 .continue-progress > div {
     height: 100%;
 
-    background: #2563eb;
+    border-radius: inherit;
+
+    background:
+            var(--color-primary);
 }
 
 
 .continue-item a {
+    color:
+            var(--color-primary);
+
     text-decoration: none;
 
     font-weight: 600;
 }
 
 
+.continue-item a:hover {
+    text-decoration:
+            underline;
+}
+
+
 .dashboard-empty {
-    opacity: 0.65;
+    color:
+            var(--color-text-secondary);
 }
 
 
-@media (
-max-width: 1000px
-) {
+/* =========================================================
+   CONTINUE VIDEO DETAILS
+========================================================= */
 
-    .dashboard-stats {
-        grid-template-columns:
-            repeat(
-                2,
-                minmax(
-                        0,
-                        1fr
-                )
-            );
-    }
+.continue-folder {
+    display: flex;
 
+    align-items: center;
 
-    .dashboard-main-grid {
-        grid-template-columns:
-            1fr;
-    }
+    gap: 7px;
 
+    margin-bottom: 3px;
+
+    color:
+            var(--color-text-primary);
+
+    font-size: 14px;
+
+    font-weight: 700;
 }
 
 
-@media (
-max-width: 650px
-) {
+.continue-folder-icon {
+    width: 27px;
+    height: 27px;
 
-    .dashboard-page {
-        padding: 16px;
-    }
+    display: inline-flex;
 
+    align-items: center;
 
-    .dashboard-stats {
-        grid-template-columns:
-            1fr;
-    }
+    justify-content: center;
 
+    border-radius: 7px;
 
-    .drive-sync-card {
-        flex-direction: column;
+    background:
+            var(--color-surface-secondary);
 
-        align-items: stretch;
-    }
-
-
-    .continue-item {
-        grid-template-columns:
-            1fr;
-    }
-
+    font-size: 16px;
 }
+
+
+.continue-video-name {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color:
+            var(--color-text-primary);
+
+    font-size: 15px;
+}
+
+
+.continue-percentage {
+    color:
+            var(--color-text-secondary);
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   APP NAVIGATION
+========================================================= */
 
 .app-navigation {
     display: flex;
+
     align-items: center;
+
     gap: 8px;
 }
 
 
 .app-navigation a {
-    padding: 8px 12px;
+    padding:
+            8px 12px;
 
     border-radius: 8px;
 
+    color:
+            var(--color-text-secondary);
+
     text-decoration: none;
 
-    color: inherit;
-
-    opacity: 0.7;
-
     font-weight: 500;
+
+    transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
 }
 
 
 .app-navigation a:hover {
-    opacity: 1;
+    background:
+            var(--color-surface-secondary);
 
-    background: #f1f5f9;
+    color:
+            var(--color-text-primary);
 }
 
 
 .app-navigation a.active {
-    opacity: 1;
+    background:
+            var(--color-primary-soft);
 
-    background: #e0e7ff;
+    color:
+            var(--color-primary);
 
-    color: #1d4ed8;
+    font-weight: 600;
 }
 
-@media (
-max-width: 1000px
-) {
 
-    .dashboard-stats {
+/* =========================================================
+   COMPARAÇÃO SEMANAL
+========================================================= */
 
-        grid-template-columns:
-            repeat(
-                2,
-                minmax(
-                        0,
-                        1fr
-                )
-            );
-
-    }
-
-}
-
-@media (
-max-width: 650px
-) {
-
-    .dashboard-stats {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-}
 .comparison-up {
-    color: #15803d;
+    color:
+            var(--color-success) !important;
 }
 
 
 .comparison-down {
-    color: #b91c1c;
+    color:
+            var(--color-danger) !important;
 }
 
 
 .comparison-same {
-    color: #64748b;
+    color:
+            var(--color-text-secondary) !important;
 }
+
+
+/* =========================================================
+   STAT HEADER
+========================================================= */
 
 .dashboard-stat-header {
     display: flex;
@@ -529,25 +980,38 @@ max-width: 650px
 }
 
 
+/* =========================================================
+   EDIT WEEKLY GOAL
+========================================================= */
+
 .weekly-goal-edit-button {
-    border: none;
+    padding:
+            2px 4px;
 
-    background: transparent;
+    border:
+            none;
 
-    cursor: pointer;
+    background:
+            transparent;
+
+    color:
+            var(--color-primary);
 
     font-size: 12px;
 
-    color: #2563eb;
-
-    padding: 2px 4px;
+    cursor: pointer;
 }
 
 
 .weekly-goal-edit-button:hover {
-    text-decoration: underline;
+    text-decoration:
+            underline;
 }
 
+
+/* =========================================================
+   WEEKLY GOAL FORM
+========================================================= */
 
 .weekly-goal-form {
     display: flex;
@@ -565,13 +1029,42 @@ max-width: 650px
 
     box-sizing: border-box;
 
-    padding: 8px 10px;
+    padding:
+            8px 10px;
 
-    border: 1px solid #d1d5db;
+    border:
+            1px solid
+            var(--color-border-strong);
 
     border-radius: 7px;
 
+    outline: none;
+
+    background:
+            var(--color-surface-secondary);
+
+    color:
+            var(--color-text-primary);
+
     font-size: 16px;
+
+    transition:
+            border-color 0.15s ease,
+            box-shadow 0.15s ease;
+}
+
+
+.weekly-goal-form input:focus {
+    border-color:
+            var(--color-primary);
+
+    box-shadow:
+            0 0 0 3px
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 15%,
+                    transparent
+            );
 }
 
 
@@ -583,58 +1076,69 @@ max-width: 650px
 
 
 .weekly-goal-actions button {
-    padding: 6px 10px;
+    padding:
+            6px 10px;
+
+    border:
+            1px solid
+            var(--color-border-strong);
 
     border-radius: 6px;
 
+    background:
+            var(--color-surface-secondary);
+
+    color:
+            var(--color-text-primary);
+
     cursor: pointer;
-}
 
-.continue-folder {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-
-    font-size: 14px;
-    font-weight: 700;
-
-    color: #0f172a;
-
-    margin-bottom: 3px;
+    transition:
+            border-color 0.15s ease,
+            background-color 0.15s ease,
+            color 0.15s ease;
 }
 
 
-.continue-folder-icon {
-    display: inline-flex;
+.weekly-goal-actions button:first-child {
+    border-color:
+            var(--color-primary);
 
-    align-items: center;
-    justify-content: center;
+    background:
+            var(--color-primary);
 
-    width: 27px;
-    height: 27px;
-
-    border-radius: 7px;
-
-    background: #f1f5f9;
-
-    font-size: 16px;
+    color:
+            #ffffff;
 }
 
 
-.continue-video-name {
-    display: block;
-
-    font-size: 15px;
-
-    margin-bottom: 3px;
+.weekly-goal-actions button:hover:not(
+    :disabled
+) {
+    border-color:
+            var(--color-primary);
 }
 
 
-.continue-percentage {
-    font-size: 12px;
-
-    color: #64748b;
+.weekly-goal-actions button:first-child:hover:not(
+    :disabled
+) {
+    background:
+            var(--color-primary-hover);
 }
+
+
+.weekly-goal-actions button:disabled {
+    opacity: 0.6;
+
+    cursor:
+            not-allowed;
+}
+
+
+/* =========================================================
+   RECENT ACTIVITY
+========================================================= */
 
 .recent-activity-card {
     margin-top: 24px;
@@ -642,13 +1146,19 @@ max-width: 650px
     padding: 20px;
 
     border:
-            1px solid #e5e7eb;
+            1px solid
+            var(--color-border);
 
-    border-radius:
-            14px;
+    border-radius: 14px;
 
     background:
-            #ffffff;
+            var(--color-surface);
+
+    color:
+            var(--color-text-primary);
+
+    box-shadow:
+            var(--shadow-sm);
 }
 
 
@@ -662,9 +1172,9 @@ max-width: 650px
 .recent-activity-item {
     display: flex;
 
-    justify-content: space-between;
-
     align-items: center;
+
+    justify-content: space-between;
 
     gap: 20px;
 
@@ -672,16 +1182,19 @@ max-width: 650px
             16px 4px;
 
     border-bottom:
-            1px solid #e5e7eb;
-
-    text-decoration:
-            none;
+            1px solid
+            var(--color-border);
 
     color:
             inherit;
 
+    text-decoration:
+            none;
+
+    border-radius: 8px;
+
     transition:
-            background 0.15s ease;
+            background-color 0.15s ease;
 }
 
 
@@ -693,7 +1206,7 @@ max-width: 650px
 
 .recent-activity-item:hover {
     background:
-            #f8fafc;
+            var(--color-surface-hover);
 }
 
 
@@ -713,83 +1226,57 @@ max-width: 650px
 
     gap: 6px;
 
-    font-size:
-            13px;
-
     color:
-            #475569;
+            var(--color-text-secondary);
 
-    font-weight:
-            600;
+    font-size: 13px;
+
+    font-weight: 600;
 }
 
 
 .recent-activity-video {
-    font-size:
-            15px;
-
     color:
-            #0f172a;
+            var(--color-text-primary);
+
+    font-size: 15px;
 }
 
 
 .recent-activity-status {
-    font-size:
-            13px;
+    font-size: 13px;
 }
 
 
 .activity-completed {
     color:
-            #15803d;
+            var(--color-success);
 
-    font-weight:
-            600;
+    font-weight: 600;
 }
 
 
 .activity-watched {
     color:
-            #2563eb;
+            var(--color-primary);
 }
 
 
 .recent-activity-date {
     flex-shrink: 0;
 
-    font-size:
-            12px;
-
     color:
-            #64748b;
+            var(--color-text-secondary);
 
-    text-align:
-            right;
+    font-size: 12px;
+
+    text-align: right;
 }
 
 
-@media (
-max-width: 650px
-) {
-
-    .recent-activity-item {
-        align-items:
-                flex-start;
-
-        flex-direction:
-                column;
-
-        gap:
-                8px;
-    }
-
-
-    .recent-activity-date {
-        text-align:
-                left;
-    }
-
-}
+/* =========================================================
+   STUDY TIME
+========================================================= */
 
 .study-time-stats {
     display: grid;
@@ -818,52 +1305,9 @@ max-width: 650px
 }
 
 
-@media (
-max-width: 1100px
-) {
-
-    .study-time-stats {
-        grid-template-columns:
-            repeat(
-                3,
-                minmax(
-                        0,
-                        1fr
-                )
-            );
-    }
-
-}
-
-
-@media (
-max-width: 750px
-) {
-
-    .study-time-stats {
-        grid-template-columns:
-            repeat(
-                2,
-                minmax(
-                        0,
-                        1fr
-                )
-            );
-    }
-
-}
-
-
-@media (
-max-width: 500px
-) {
-
-    .study-time-stats {
-        grid-template-columns:
-            1fr;
-    }
-
-}
+/* =========================================================
+   STUDY TIME GOAL INPUT
+========================================================= */
 
 .study-time-goal-input {
     display: flex;
@@ -879,51 +1323,82 @@ max-width: 500px
 
     min-width: 0;
 
-    padding: 8px 10px;
+    padding:
+            8px 10px;
 
     border:
-            1px solid #d1d5db;
+            1px solid
+            var(--color-border-strong);
 
-    border-radius:
-            7px;
+    border-radius: 7px;
 
-    font-size:
-            16px;
+    outline: none;
+
+    background:
+            var(--color-surface-secondary);
+
+    color:
+            var(--color-text-primary);
+
+    font-size: 16px;
+}
+
+
+.study-time-goal-input input:focus {
+    border-color:
+            var(--color-primary);
+
+    box-shadow:
+            0 0 0 3px
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 15%,
+                    transparent
+            );
 }
 
 
 .study-time-goal-input span {
-    font-size:
-            13px;
-
     color:
-            #64748b;
+            var(--color-text-secondary);
 
-    white-space:
-            nowrap;
+    font-size: 13px;
+
+    white-space: nowrap;
 }
+
+
+/* =========================================================
+   STUDY TIME GOAL VALUES
+========================================================= */
 
 .study-time-goal-value {
     display: block;
 
     margin-top: 10px;
 
+    color:
+            var(--color-text-primary);
+
     font-size: 24px;
 
     font-weight: 700;
-
-    color: #0f172a;
 }
 
 
 .study-time-goal-value span {
+    color:
+            var(--color-text-secondary);
+
     font-size: 16px;
 
     font-weight: 500;
-
-    color: #64748b;
 }
 
+
+/* =========================================================
+   STUDY TIME PROGRESS
+========================================================= */
 
 .study-time-goal-progress-row {
     display: flex;
@@ -945,7 +1420,8 @@ max-width: 500px
 
     border-radius: 999px;
 
-    background: #e5e7eb;
+    background:
+            var(--color-surface-tertiary);
 }
 
 
@@ -954,7 +1430,8 @@ max-width: 500px
 
     border-radius: inherit;
 
-    background: #2563eb;
+    background:
+            var(--color-primary);
 
     transition:
             width 0.3s ease;
@@ -962,18 +1439,20 @@ max-width: 500px
 
 
 .study-time-goal-progress-fill.completed {
-    background: #16a34a;
+    background:
+            var(--color-success);
 }
 
 
 .study-time-goal-percent {
     min-width: 40px;
 
+    color:
+            var(--color-text-secondary);
+
     font-size: 12px;
 
     font-weight: 600;
-
-    color: #64748b;
 
     text-align: right;
 }
@@ -984,7 +1463,8 @@ max-width: 500px
 
     margin-top: 8px;
 
-    color: #64748b;
+    color:
+            var(--color-text-secondary);
 }
 
 
@@ -993,10 +1473,16 @@ max-width: 500px
 
     margin-top: 8px;
 
-    color: #15803d;
+    color:
+            var(--color-success);
 
     font-weight: 600;
 }
+
+
+/* =========================================================
+   STUDY SESSION HISTORY
+========================================================= */
 
 .study-session-history-card {
     margin-top: 24px;
@@ -1004,13 +1490,19 @@ max-width: 500px
     padding: 20px;
 
     border:
-            1px solid #e5e7eb;
+            1px solid
+            var(--color-border);
 
-    border-radius:
-            14px;
+    border-radius: 14px;
 
     background:
-            #ffffff;
+            var(--color-surface);
+
+    color:
+            var(--color-text-primary);
+
+    box-shadow:
+            var(--shadow-sm);
 }
 
 
@@ -1037,13 +1529,15 @@ max-width: 500px
 .study-session-day {
     margin: 0;
 
+    color:
+            var(--color-text-secondary);
+
     font-size: 14px;
 
     font-weight: 700;
 
-    color: #475569;
-
-    text-transform: capitalize;
+    text-transform:
+            capitalize;
 }
 
 
@@ -1063,27 +1557,35 @@ max-width: 500px
 
     gap: 20px;
 
-    padding: 16px 4px;
+    padding:
+            16px 4px;
 
     border-bottom:
-            1px solid #e5e7eb;
+            1px solid
+            var(--color-border);
 
-    text-decoration: none;
+    border-radius: 8px;
 
-    color: inherit;
+    color:
+            inherit;
+
+    text-decoration:
+            none;
 
     transition:
-            background 0.15s ease;
+            background-color 0.15s ease;
 }
 
 
 .study-session-item:last-child {
-    border-bottom: none;
+    border-bottom:
+            none;
 }
 
 
 .study-session-item:hover {
-    background: #f8fafc;
+    background:
+            var(--color-surface-hover);
 }
 
 
@@ -1103,18 +1605,20 @@ max-width: 500px
 
     gap: 6px;
 
+    color:
+            var(--color-text-secondary);
+
     font-size: 13px;
 
     font-weight: 600;
-
-    color: #475569;
 }
 
 
 .study-session-video {
-    font-size: 15px;
+    color:
+            var(--color-text-primary);
 
-    color: #0f172a;
+    font-size: 15px;
 }
 
 
@@ -1125,9 +1629,10 @@ max-width: 500px
 
     gap: 6px;
 
-    font-size: 12px;
+    color:
+            var(--color-text-secondary);
 
-    color: #64748b;
+    font-size: 12px;
 }
 
 
@@ -1145,37 +1650,24 @@ max-width: 500px
 
 
 .study-session-meta strong {
-    font-size: 14px;
+    color:
+            var(--color-text-primary);
 
-    color: #0f172a;
+    font-size: 14px;
 }
 
 
 .study-session-meta small {
+    color:
+            var(--color-text-secondary);
+
     font-size: 11px;
-
-    color: #64748b;
 }
 
 
-@media (
-max-width: 650px
-) {
-
-    .study-session-item {
-        align-items: flex-start;
-
-        flex-direction: column;
-
-        gap: 10px;
-    }
-
-
-    .study-session-meta {
-        align-items: flex-start;
-    }
-
-}
+/* =========================================================
+   SESSION STATS
+========================================================= */
 
 .session-stats-grid {
     display: grid;
@@ -1195,6 +1687,669 @@ max-width: 650px
 }
 
 
+/* =========================================================
+   SESSION CHART
+========================================================= */
+
+.session-chart-card {
+    margin-top: 24px;
+
+    padding: 24px;
+
+    border:
+            1px solid
+            var(--color-border);
+
+    border-radius: 16px;
+
+    background:
+            var(--color-surface);
+
+    color:
+            var(--color-text-primary);
+
+    box-shadow:
+            var(--shadow-sm);
+}
+
+
+.session-chart-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 24px;
+}
+
+
+.session-chart-header h2 {
+    margin: 0;
+
+    color:
+            var(--color-text-primary);
+
+    font-size: 18px;
+
+    font-weight: 700;
+}
+
+
+.session-chart-header p {
+    margin:
+            6px
+            0
+            0;
+
+    color:
+            var(--color-text-secondary);
+
+    font-size: 14px;
+}
+
+
+.session-chart-container {
+    width: 100%;
+
+    height: 280px;
+}
+
+
+/* =========================================================
+   SESSION CHART TOOLTIP
+========================================================= */
+
+.session-chart-tooltip {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+
+    padding:
+            10px 12px;
+
+    border:
+            1px solid
+            var(--color-border);
+
+    border-radius: 10px;
+
+    background:
+            var(--color-surface);
+
+    color:
+            var(--color-text-primary);
+
+    box-shadow:
+            var(--shadow-md);
+}
+
+
+.session-chart-tooltip strong {
+    color:
+            var(--color-text-primary);
+
+    font-size: 13px;
+}
+
+
+.session-chart-tooltip span {
+    color:
+            var(--color-text-secondary);
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   DASHBOARD EMPTY STATE
+========================================================= */
+
+.dashboard-empty-state {
+    min-height: 180px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin-top: 12px;
+
+    padding:
+            32px 24px;
+
+    border:
+            1px dashed
+            var(--color-border-strong);
+
+    border-radius: 16px;
+
+    background:
+            var(--color-surface);
+
+    color:
+            var(--color-text-primary);
+
+    text-align: center;
+}
+
+
+.dashboard-empty-state-icon {
+    width: 52px;
+    height: 52px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin-bottom: 14px;
+
+    border-radius: 14px;
+
+    background:
+            var(--color-surface-secondary);
+
+    font-size: 28px;
+}
+
+
+.dashboard-empty-state h3 {
+    margin: 0;
+
+    color:
+            var(--color-text-primary);
+
+    font-size: 17px;
+
+    font-weight: 700;
+}
+
+
+.dashboard-empty-state p {
+    max-width: 520px;
+
+    margin:
+            8px
+            0
+            0;
+
+    color:
+            var(--color-text-secondary);
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+
+.dashboard-empty-state-action {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin-top: 18px;
+
+    padding:
+            10px 16px;
+
+    border-radius: 9px;
+
+    background:
+            var(--color-primary);
+
+    color:
+            #ffffff;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    text-decoration: none;
+
+    transition:
+            background-color 0.2s ease,
+            transform 0.2s ease;
+}
+
+
+.dashboard-empty-state-action:hover {
+    background:
+            var(--color-primary-hover);
+
+    transform:
+            translateY(-1px);
+}
+
+
+/* =========================================================
+   DASHBOARD SKELETON
+========================================================= */
+
+.skeleton {
+    position: relative;
+
+    overflow: hidden;
+
+    border-radius: 8px;
+
+    background:
+            var(--color-skeleton);
+}
+
+
+.skeleton::after {
+    content: '';
+
+    position: absolute;
+
+    top: 0;
+    left: -100%;
+
+    width: 100%;
+    height: 100%;
+
+    background:
+            linear-gradient(
+                    90deg,
+                    transparent,
+                    var(--color-skeleton-highlight),
+                    transparent
+            );
+
+    animation:
+            dashboard-skeleton-loading
+            1.4s
+            infinite;
+}
+
+
+@keyframes dashboard-skeleton-loading {
+
+    100% {
+        left: 100%;
+    }
+
+}
+
+
+/* =========================================================
+   SKELETON TITLE
+========================================================= */
+
+.dashboard-skeleton-title {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin-bottom: 30px;
+}
+
+
+.skeleton-title-main {
+    width: 180px;
+
+    height: 32px;
+}
+
+
+.skeleton-title-subtitle {
+    width: 280px;
+
+    height: 16px;
+}
+
+
+/* =========================================================
+   SKELETON SECTION HEADER
+========================================================= */
+
+.dashboard-skeleton-section-header {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    margin-top: 34px;
+
+    margin-bottom: 16px;
+}
+
+
+.skeleton-section-title {
+    width: 180px;
+
+    height: 22px;
+}
+
+
+.skeleton-section-description {
+    width: 360px;
+
+    max-width: 70%;
+
+    height: 14px;
+}
+
+
+/* =========================================================
+   SKELETON STATS
+========================================================= */
+
+.dashboard-skeleton-stats {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(
+                    0,
+                    1fr
+            )
+        );
+
+    gap: 14px;
+}
+
+
+.dashboard-skeleton-stat-card {
+    min-height: 130px;
+
+    padding: 18px;
+
+    border:
+            1px solid
+            var(--color-border);
+
+    border-radius: 14px;
+
+    background:
+            var(--color-surface);
+}
+
+
+.skeleton-card-label {
+    width: 45%;
+
+    height: 13px;
+
+    margin-bottom: 20px;
+}
+
+
+.skeleton-card-value {
+    width: 32%;
+
+    height: 32px;
+
+    margin-bottom: 16px;
+}
+
+
+.skeleton-card-detail {
+    width: 58%;
+
+    height: 12px;
+}
+
+
+/* =========================================================
+   SKELETON MAIN GRID
+========================================================= */
+
+.dashboard-skeleton-main-grid {
+    display: grid;
+
+    grid-template-columns:
+        minmax(
+            0,
+            1.35fr
+        )
+        minmax(
+            320px,
+            0.65fr
+        );
+
+    gap: 16px;
+
+    margin-top: 18px;
+}
+
+
+.dashboard-skeleton-panel {
+    padding: 22px;
+
+    border:
+            1px solid
+            var(--color-border);
+
+    border-radius: 16px;
+
+    background:
+            var(--color-surface);
+}
+
+
+.skeleton-panel-title {
+    width: 180px;
+
+    height: 18px;
+
+    margin-bottom: 24px;
+}
+
+
+.skeleton-chart,
+.skeleton-calendar {
+    width: 100%;
+
+    height: 250px;
+}
+
+
+/* =========================================================
+   SKELETON WIDE CARD
+========================================================= */
+
+.dashboard-skeleton-wide-card {
+    margin-top: 14px;
+
+    padding: 22px;
+
+    border:
+            1px solid
+            var(--color-border);
+
+    border-radius: 16px;
+
+    background:
+            var(--color-surface);
+}
+
+
+.skeleton-wide-title {
+    width: 190px;
+
+    height: 18px;
+
+    margin-bottom: 18px;
+}
+
+
+.skeleton-wide-line {
+    width: 70%;
+
+    height: 14px;
+
+    margin-bottom: 10px;
+}
+
+
+.skeleton-wide-line-short {
+    width: 42%;
+
+    height: 14px;
+}
+
+
+/* =========================================================
+   SKELETON SESSION
+========================================================= */
+
+.dashboard-skeleton-session-row {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding:
+            14px 0;
+
+    border-bottom:
+            1px solid
+            var(--color-border);
+}
+
+
+.dashboard-skeleton-session-row:last-child {
+    border-bottom:
+            none;
+}
+
+
+.skeleton-session-title {
+    width: 170px;
+
+    height: 14px;
+
+    margin-bottom: 8px;
+}
+
+
+.skeleton-session-subtitle {
+    width: 120px;
+
+    height: 11px;
+}
+
+
+.skeleton-session-time {
+    width: 70px;
+
+    height: 14px;
+}
+
+
+.dashboard-skeleton-session-stats {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            5,
+            minmax(
+                    0,
+                    1fr
+            )
+        );
+
+    gap: 14px;
+
+    margin-top: 18px;
+}
+
+
+.dashboard-skeleton-full {
+    margin-top: 18px;
+}
+
+
+.skeleton-chart-large {
+    width: 100%;
+
+    height: 260px;
+}
+
+
+.skeleton-drive-title {
+    width: 230px;
+
+    height: 18px;
+
+    margin-bottom: 16px;
+}
+
+
+/* =========================================================
+   DARK MODE — AJUSTES FINOS
+========================================================= */
+
+[data-theme='dark']
+.dashboard-stat-card,
+[data-theme='dark']
+.dashboard-chart,
+[data-theme='dark']
+.study-calendar-card,
+[data-theme='dark']
+.continue-studying-card,
+[data-theme='dark']
+.drive-sync-card,
+[data-theme='dark']
+.recent-activity-card,
+[data-theme='dark']
+.study-session-history-card,
+[data-theme='dark']
+.session-chart-card {
+    box-shadow:
+            0 4px 18px
+            rgba(
+                    0,
+                    0,
+                    0,
+                    0.18
+            );
+}
+
+
+[data-theme='dark']
+.calendar-activity-low {
+    background:
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 22%,
+                    var(--color-surface)
+            );
+}
+
+
+[data-theme='dark']
+.calendar-activity-medium {
+    background:
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 48%,
+                    var(--color-surface)
+            );
+}
+
+
+/* =========================================================
+   RESPONSIVE — 1200
+========================================================= */
+
 @media (
 max-width: 1200px
 ) {
@@ -1213,10 +2368,117 @@ max-width: 1200px
 }
 
 
+/* =========================================================
+   RESPONSIVE — 1100
+========================================================= */
+
+@media (
+max-width: 1100px
+) {
+
+    .study-time-stats {
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(
+                        0,
+                        1fr
+                )
+            );
+    }
+
+
+    .dashboard-skeleton-session-stats {
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(
+                        0,
+                        1fr
+                )
+            );
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — 1000
+========================================================= */
+
+@media (
+max-width: 1000px
+) {
+
+    .dashboard-stats {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(
+                        0,
+                        1fr
+                )
+            );
+    }
+
+
+    .dashboard-main-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — 900
+========================================================= */
+
+@media (
+max-width: 900px
+) {
+
+    .dashboard-skeleton-stats {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(
+                        0,
+                        1fr
+                )
+            );
+    }
+
+
+    .dashboard-skeleton-main-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .dashboard-skeleton-session-stats {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(
+                        0,
+                        1fr
+                )
+            );
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — 750
+========================================================= */
+
 @media (
 max-width: 750px
 ) {
 
+    .study-time-stats,
     .session-stats-grid {
         grid-template-columns:
             repeat(
@@ -1231,122 +2493,248 @@ max-width: 750px
 }
 
 
-@media (
-max-width: 500px
-) {
-
-    .session-stats-grid {
-        grid-template-columns:
-            1fr;
-    }
-
-}
-
-/* =========================================
-   GRÁFICO DE SESSÕES
-========================================= */
-
-.session-chart-card {
-    margin-top: 24px;
-    padding: 24px;
-
-    background: #ffffff;
-
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-}
-
-
-.session-chart-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    margin-bottom: 24px;
-}
-
-
-.session-chart-header h2 {
-    margin: 0;
-
-    font-size: 18px;
-    font-weight: 700;
-
-    color: #0f172a;
-}
-
-
-.session-chart-header p {
-    margin:
-            6px
-            0
-            0;
-
-    font-size: 14px;
-
-    color: #64748b;
-}
-
-
-.session-chart-container {
-    width: 100%;
-    height: 280px;
-}
-
-
-.session-chart-tooltip {
-    display: flex;
-    flex-direction: column;
-
-    gap: 4px;
-
-    padding:
-            10px
-            12px;
-
-    background: #ffffff;
-
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-
-    box-shadow:
-            0
-            6px
-            20px
-            rgba(
-                    15,
-                    23,
-                    42,
-                    0.08
-            );
-}
-
-
-.session-chart-tooltip strong {
-    font-size: 13px;
-
-    color: #0f172a;
-}
-
-
-.session-chart-tooltip span {
-    font-size: 12px;
-
-    color: #64748b;
-}
-
+/* =========================================================
+   RESPONSIVE — 650
+========================================================= */
 
 @media (
 max-width: 650px
 ) {
 
+    .dashboard-page {
+        padding:
+                16px;
+    }
+
+
+    .dashboard-title h1 {
+        font-size:
+                27px;
+    }
+
+
+    .dashboard-stats {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .drive-sync-card {
+        align-items:
+                stretch;
+
+        flex-direction:
+                column;
+    }
+
+
+    .drive-sync-card button {
+        width:
+                100%;
+    }
+
+
+    .continue-item {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .recent-activity-item {
+        align-items:
+                flex-start;
+
+        flex-direction:
+                column;
+
+        gap:
+                8px;
+    }
+
+
+    .recent-activity-date {
+        text-align:
+                left;
+    }
+
+
+    .study-session-item {
+        align-items:
+                flex-start;
+
+        flex-direction:
+                column;
+
+        gap:
+                10px;
+    }
+
+
+    .study-session-meta {
+        align-items:
+                flex-start;
+    }
+
+
     .session-chart-card {
-        padding: 18px;
+        padding:
+                18px;
     }
 
 
     .session-chart-container {
-        height: 240px;
+        height:
+                240px;
+    }
+
+
+    .dashboard-section-header {
+        margin-top:
+                28px;
+
+        margin-bottom:
+                14px;
+    }
+
+
+    .dashboard-section-header h2 {
+        font-size:
+                18px;
+    }
+
+
+    .dashboard-section-header p {
+        font-size:
+                13px;
+    }
+
+
+    .dashboard-empty-state {
+        min-height:
+                160px;
+
+        padding:
+                24px 18px;
+    }
+
+
+    .dashboard-empty-state-icon {
+        width:
+                46px;
+
+        height:
+                46px;
+
+        font-size:
+                24px;
+    }
+
+
+    .dashboard-empty-state h3 {
+        font-size:
+                16px;
+    }
+
+
+    .dashboard-empty-state p {
+        font-size:
+                13px;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — 550
+========================================================= */
+
+@media (
+max-width: 550px
+) {
+
+    .dashboard-skeleton-stats,
+    .dashboard-skeleton-session-stats {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .skeleton-title-subtitle {
+        width:
+                70%;
+    }
+
+
+    .skeleton-section-description {
+        max-width:
+                90%;
+    }
+
+
+    .skeleton-chart,
+    .skeleton-calendar,
+    .skeleton-chart-large {
+        height:
+                200px;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — 500
+========================================================= */
+
+@media (
+max-width: 500px
+) {
+
+    .study-time-stats,
+    .session-stats-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .dashboard-stat-card {
+        padding:
+                17px;
+    }
+
+
+    .dashboard-stat-card strong {
+        font-size:
+                25px;
+    }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (
+prefers-reduced-motion:
+        reduce
+) {
+
+    .dashboard-stat-card,
+    .drive-sync-card button,
+    .dashboard-empty-state-action,
+    .recent-activity-item,
+    .study-session-item {
+        transition:
+                none;
+    }
+
+
+    .skeleton::after {
+        animation-duration:
+                0.01ms;
+
+        animation-iteration-count:
+                1;
     }
 
 }

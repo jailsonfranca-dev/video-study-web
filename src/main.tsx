@@ -16,6 +16,12 @@ import {
     AuthProvider
 } from './contexts/AuthContext';
 
+import {
+    ThemeProvider
+} from './contexts/ThemeContext';
+
+import './styles/theme.css';
+
 import './styles/global.css';
 
 
@@ -27,11 +33,15 @@ createRoot(
 
         <BrowserRouter>
 
-            <AuthProvider>
+            <ThemeProvider>
 
-                <App />
+                <AuthProvider>
 
-            </AuthProvider>
+                    <App />
+
+                </AuthProvider>
+
+            </ThemeProvider>
 
         </BrowserRouter>
 

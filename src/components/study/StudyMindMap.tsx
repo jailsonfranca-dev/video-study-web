@@ -16,36 +16,196 @@ import type {
     Edge
 } from '@xyflow/react';
 
-import dagre from '@dagrejs/dagre';
+import dagre
+    from '@dagrejs/dagre';
 
 import type {
     MindMapNode
 } from '../../types/studyMaterial';
 
+import {
+    useTheme
+} from '../../hooks/useTheme';
+
 
 interface StudyMindMapProps {
-    mindMap: MindMapNode;
+
+    mindMap:
+        MindMapNode;
+
+}
+
+
+interface MindMapPalette {
+
+    background: string;
+
+    nodeBackground: string;
+
+    nodeRootBackground: string;
+
+    nodeBorder: string;
+
+    nodeRootBorder: string;
+
+    nodeText: string;
+
+    nodeDescription: string;
+
+    edge: string;
+
+    backgroundDots: string;
+
+    miniMapBackground: string;
+
+    miniMapNode: string;
+
+    miniMapMask: string;
+
 }
 
 
 const NODE_WIDTH =
     260;
 
+
 const NODE_HEIGHT =
     100;
 
 
+/*
+ * =========================================
+ * PALETA DO MAPA
+ * =========================================
+ */
+
+function getMindMapPalette(
+    theme:
+        'light' | 'dark'
+): MindMapPalette {
+
+    if (
+        theme ===
+        'dark'
+    ) {
+
+        return {
+
+            background:
+                '#111827',
+
+            nodeBackground:
+                '#1e293b',
+
+            nodeRootBackground:
+                '#172554',
+
+            nodeBorder:
+                '#475569',
+
+            nodeRootBorder:
+                '#3b82f6',
+
+            nodeText:
+                '#f8fafc',
+
+            nodeDescription:
+                '#cbd5e1',
+
+            edge:
+                '#64748b',
+
+            backgroundDots:
+                '#334155',
+
+            miniMapBackground:
+                '#111827',
+
+            miniMapNode:
+                '#475569',
+
+            miniMapMask:
+                'rgba(15, 23, 42, 0.70)'
+
+        };
+
+    }
+
+
+    return {
+
+        background:
+            '#f8fafc',
+
+        nodeBackground:
+            '#ffffff',
+
+        nodeRootBackground:
+            '#eff6ff',
+
+        nodeBorder:
+            '#cbd5e1',
+
+        nodeRootBorder:
+            '#2563eb',
+
+        nodeText:
+            '#0f172a',
+
+        nodeDescription:
+            '#64748b',
+
+        edge:
+            '#94a3b8',
+
+        backgroundDots:
+            '#cbd5e1',
+
+        miniMapBackground:
+            '#ffffff',
+
+        miniMapNode:
+            '#cbd5e1',
+
+        miniMapMask:
+            'rgba(248, 250, 252, 0.75)'
+
+    };
+
+}
+
+
+/*
+ * =========================================
+ * CONVERTER MIND MAP PARA REACT FLOW
+ * =========================================
+ */
+
 function convertMindMapToFlow(
-    root: MindMapNode
+
+    root:
+        MindMapNode,
+
+    palette:
+        MindMapPalette
+
 ): {
-    nodes: Node[];
-    edges: Edge[];
+
+    nodes:
+        Node[];
+
+    edges:
+        Edge[];
+
 } {
 
-    const nodes: Node[] =
+    const nodes:
+        Node[] =
         [];
 
-    const edges: Edge[] =
+
+    const edges:
+        Edge[] =
         [];
 
 
@@ -54,13 +214,25 @@ function convertMindMapToFlow(
 
 
     function visit(
-        node: MindMapNode,
-        parentId?: string,
-        depth = 0
+
+        node:
+            MindMapNode,
+
+        parentId?:
+            string,
+
+        depth =
+            0
+
     ) {
 
         const id =
             `mind-${nodeCounter++}`;
+
+
+        const isRoot =
+            depth ===
+            0;
 
 
         nodes.push({
@@ -68,8 +240,11 @@ function convertMindMapToFlow(
             id,
 
             position: {
+
                 x: 0,
+
                 y: 0
+
             },
 
             sourcePosition:
@@ -78,21 +253,46 @@ function convertMindMapToFlow(
             targetPosition:
             Position.Top,
 
+
             data: {
+
+                depth,
 
                 label: (
 
-                    <div className="mind-map-node-content">
+                    <div
+                        className="mind-map-node-content"
+                    >
 
-                        <strong>
-                            {node.title}
+                        <strong
+                            style={{
+                                color:
+                                palette.nodeText
+                            }}
+                        >
+
+                            {
+                                node.title
+                            }
+
                         </strong>
+
 
                         {
                             node.description && (
 
-                                <span>
-                                    {node.description}
+                                <span
+                                    style={{
+                                        color:
+                                        palette
+                                            .nodeDescription
+                                    }}
+                                >
+
+                                    {
+                                        node.description
+                                    }
+
                                 </span>
 
                             )
@@ -103,6 +303,7 @@ function convertMindMapToFlow(
                 )
 
             },
+
 
             style: {
 
@@ -118,17 +319,54 @@ function convertMindMapToFlow(
                 borderRadius:
                     '10px',
 
+                border:
+                    `1px solid ${
+                        isRoot
+                            ? palette
+                                .nodeRootBorder
+                            : palette
+                                .nodeBorder
+                    }`,
+
+                background:
+                    isRoot
+                        ? palette
+                            .nodeRootBackground
+                        : palette
+                            .nodeBackground,
+
+                color:
+                palette
+                    .nodeText,
+
+                boxShadow:
+                    isRoot
+                        ? '0 6px 20px rgba(0, 0, 0, 0.18)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.10)',
+
                 textAlign:
                     'center',
 
                 whiteSpace:
-                    'normal'
+                    'normal',
+
+                transition:
+                    'background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease'
+
             }
 
         });
 
 
-        if (parentId) {
+        /*
+         * =================================
+         * EDGE PAI → FILHO
+         * =================================
+         */
+
+        if (
+            parentId
+        ) {
 
             edges.push({
 
@@ -144,9 +382,34 @@ function convertMindMapToFlow(
                 type:
                     'smoothstep',
 
+                animated:
+                    false,
+
+                style: {
+
+                    stroke:
+                    palette.edge,
+
+                    strokeWidth:
+                        1.5
+
+                },
+
                 markerEnd: {
+
                     type:
-                    MarkerType.ArrowClosed
+                    MarkerType
+                        .ArrowClosed,
+
+                    color:
+                    palette.edge,
+
+                    width:
+                        18,
+
+                    height:
+                        18
+
                 }
 
             });
@@ -154,15 +417,27 @@ function convertMindMapToFlow(
         }
 
 
+        /*
+         * =================================
+         * FILHOS
+         * =================================
+         */
+
         for (
             const child
-            of node.children ?? []
+            of
+        node.children ??
+        []
             ) {
 
             visit(
+
                 child,
+
                 id,
+
                 depth + 1
+
             );
 
         }
@@ -176,108 +451,133 @@ function convertMindMapToFlow(
 
 
     /*
-     * Dagre
+     * =========================================
+     * DAGRE
+     * =========================================
      */
+
     const graph =
-        new dagre.graphlib.Graph();
+        new dagre
+            .graphlib
+            .Graph();
 
 
-    graph.setDefaultEdgeLabel(
-        () => ({})
-    );
+    graph
+        .setDefaultEdgeLabel(
+            () => ({})
+        );
 
 
-    graph.setGraph({
+    graph
+        .setGraph({
 
-        /*
-         * TB = Top → Bottom
-         */
-        rankdir:
-            'TB',
+            /*
+             * Top → Bottom
+             */
+            rankdir:
+                'TB',
 
-        /*
-         * Espaço horizontal
-         * entre nós do mesmo nível.
-         */
-        nodesep:
-            70,
 
-        /*
-         * Espaço vertical
-         * entre níveis.
-         */
-        ranksep:
-            100,
+            /*
+             * Espaçamento horizontal
+             */
+            nodesep:
+                70,
 
-        /*
-         * Espaçamento entre edges.
-         */
-        edgesep:
-            30,
 
-        /*
-         * Centraliza os níveis.
-         */
-        align:
-        undefined
+            /*
+             * Espaçamento vertical
+             */
+            ranksep:
+                100,
 
-    });
+
+            /*
+             * Espaçamento entre edges
+             */
+            edgesep:
+                30,
+
+
+            align:
+            undefined
+
+        });
 
 
     /*
-     * Informa ao Dagre
-     * tamanho de cada nó.
+     * =========================================
+     * TAMANHO DOS NODES
+     * =========================================
      */
+
     for (
         const node
-        of nodes
+        of
+        nodes
         ) {
 
-        graph.setNode(
-            node.id,
-            {
-                width:
-                NODE_WIDTH,
+        graph
+            .setNode(
 
-                height:
-                NODE_HEIGHT
-            }
-        );
+                node.id,
+
+                {
+
+                    width:
+                    NODE_WIDTH,
+
+                    height:
+                    NODE_HEIGHT
+
+                }
+
+            );
 
     }
 
 
     /*
-     * Relações pai → filho.
+     * =========================================
+     * RELAÇÕES
+     * =========================================
      */
+
     for (
         const edge
-        of edges
+        of
+        edges
         ) {
 
-        graph.setEdge(
-            edge.source,
-            edge.target
-        );
+        graph
+            .setEdge(
+
+                edge.source,
+
+                edge.target
+
+            );
 
     }
 
 
     /*
-     * Calcula o layout.
+     * =========================================
+     * CALCULAR LAYOUT
+     * =========================================
      */
+
     dagre.layout(
         graph
     );
 
 
     /*
-     * Dagre retorna coordenadas
-     * referentes ao centro.
-     *
-     * React Flow trabalha com
-     * canto superior esquerdo.
+     * =========================================
+     * CONVERTER COORDENADAS
+     * =========================================
      */
+
     const layoutedNodes =
         nodes.map(
             node => {
@@ -316,32 +616,94 @@ function convertMindMapToFlow(
         layoutedNodes,
 
         edges
+
     };
+
 }
 
 
+/*
+ * =============================================
+ * COMPONENTE
+ * =============================================
+ */
+
 export function StudyMindMap({
+
                                  mindMap
+
                              }: StudyMindMapProps) {
 
+    /*
+     * =========================================
+     * THEME
+     * =========================================
+     */
+
     const {
-        nodes,
-        edges
+        theme
     } =
+        useTheme();
+
+
+    /*
+     * =========================================
+     * PALETA
+     * =========================================
+     */
+
+    const palette =
         useMemo(
             () =>
-                convertMindMapToFlow(
-                    mindMap
+                getMindMapPalette(
+                    theme
                 ),
             [
-                mindMap
+                theme
             ]
         );
 
 
+    /*
+     * =========================================
+     * NODES + EDGES
+     * =========================================
+     */
+
+    const {
+
+        nodes,
+
+        edges
+
+    } =
+        useMemo(
+            () =>
+                convertMindMapToFlow(
+
+                    mindMap,
+
+                    palette
+
+                ),
+            [
+                mindMap,
+                palette
+            ]
+        );
+
+
+    /*
+     * =========================================
+     * RENDER
+     * =========================================
+     */
+
     return (
 
-        <div className="mind-map-container">
+        <div
+            className="mind-map-container"
+        >
 
             <ReactFlow
 
@@ -353,15 +715,31 @@ export function StudyMindMap({
                     edges
                 }
 
+
+                /*
+                 * =================================
+                 * FIT VIEW
+                 * =================================
+                 */
+
                 fitView
 
                 fitViewOptions={{
+
                     padding:
                         0.2,
 
                     duration:
                         400
+
                 }}
+
+
+                /*
+                 * =================================
+                 * INTERAÇÃO
+                 * =================================
+                 */
 
                 nodesDraggable={
                     false
@@ -373,6 +751,13 @@ export function StudyMindMap({
 
                 elementsSelectable
 
+
+                /*
+                 * =================================
+                 * ZOOM
+                 * =================================
+                 */
+
                 minZoom={
                     0.2
                 }
@@ -381,21 +766,88 @@ export function StudyMindMap({
                     1.5
                 }
 
+
+                /*
+                 * =================================
+                 * FUNDO
+                 * =================================
+                 */
+
+                style={{
+
+                    background:
+                    palette.background
+
+                }}
+
             >
 
+                {/*
+                 * =================================
+                 * BACKGROUND
+                 * =================================
+                 */}
+
                 <Background
+
                     gap={
                         20
                     }
+
+                    size={
+                        1
+                    }
+
+                    color={
+                        palette
+                            .backgroundDots
+                    }
+
                 />
+
+
+                {/*
+                 * =================================
+                 * CONTROLS
+                 * =================================
+                 */}
 
                 <Controls />
 
-                <MiniMap />
+
+                {/*
+                 * =================================
+                 * MINIMAP
+                 * =================================
+                 */}
+
+                <MiniMap
+
+                    nodeColor={
+                        palette
+                            .miniMapNode
+                    }
+
+                    bgColor={
+                        palette
+                            .miniMapBackground
+                    }
+
+                    maskColor={
+                        palette
+                            .miniMapMask
+                    }
+
+                    pannable
+
+                    zoomable
+
+                />
 
             </ReactFlow>
 
         </div>
 
     );
+
 }

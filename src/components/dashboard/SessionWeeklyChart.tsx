@@ -21,78 +21,6 @@ interface SessionWeeklyChartProps {
 }
 
 
-interface TooltipProps {
-
-    active?: boolean;
-
-    payload?: Array<{
-        value: number;
-    }>;
-
-    label?: string;
-
-}
-
-
-function SessionTooltip({
-
-                            active,
-
-                            payload,
-
-                            label
-
-                        }: TooltipProps) {
-
-    if (
-        !active ||
-        !payload ||
-        payload.length === 0
-    ) {
-
-        return null;
-
-    }
-
-
-    const sessions =
-        Number(
-            payload[0]?.value ??
-            0
-        );
-
-
-    return (
-
-        <div className="session-chart-tooltip">
-
-            <strong>
-                {label}
-            </strong>
-
-            <span>
-
-                {
-                    sessions
-                }
-
-                {' '}
-
-                {
-                    sessions === 1
-                        ? 'sessão'
-                        : 'sessões'
-                }
-
-            </span>
-
-        </div>
-
-    );
-
-}
-
-
 export function SessionWeeklyChart({
 
                                        days
@@ -106,7 +34,8 @@ export function SessionWeeklyChart({
                 ...item,
 
                 label:
-                    item.day.toUpperCase()
+                    item.day
+                        .toUpperCase()
 
             })
         );
@@ -133,124 +62,211 @@ export function SessionWeeklyChart({
             </div>
 
 
-            {
-                data.length === 0
-                    ? (
+            <div className="session-chart-container">
 
-                        <div className="dashboard-empty">
+                <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                >
 
-                            Nenhuma sessão encontrada.
+                    <BarChart
 
-                        </div>
+                        data={
+                            data
+                        }
 
-                    )
-                    : (
+                        margin={{
+                            top: 10,
+                            right: 10,
+                            left: -10,
+                            bottom: 0
+                        }}
 
-                        <div className="session-chart-container">
+                    >
 
-                            <ResponsiveContainer
-                                width="100%"
-                                height="100%"
-                            >
+                        <CartesianGrid
 
-                                <BarChart
+                            stroke={
+                                'var(--color-border)'
+                            }
 
-                                    data={
-                                        data
-                                    }
+                            strokeDasharray="3 3"
 
-                                    margin={{
-                                        top: 10,
-                                        right: 10,
-                                        left: -10,
-                                        bottom: 0
-                                    }}
+                            vertical={
+                                false
+                            }
 
-                                >
-
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                        vertical={
-                                            false
-                                        }
-                                    />
+                        />
 
 
-                                    <XAxis
+                        <XAxis
 
-                                        dataKey="label"
+                            dataKey="label"
 
-                                        axisLine={
-                                            false
-                                        }
+                            axisLine={{
+                                stroke:
+                                    'var(--color-border)'
+                            }}
 
-                                        tickLine={
-                                            false
-                                        }
+                            tickLine={
+                                false
+                            }
 
-                                    />
+                            tick={{
 
+                                fill:
+                                    'var(--color-text-secondary)',
 
-                                    <YAxis
+                                fontSize:
+                                    12
 
-                                        allowDecimals={
-                                            false
-                                        }
+                            }}
 
-                                        axisLine={
-                                            false
-                                        }
-
-                                        tickLine={
-                                            false
-                                        }
-
-                                        domain={[
-                                            0,
-                                            'auto'
-                                        ]}
-
-                                    />
+                        />
 
 
-                                    <Tooltip
-                                        content={
-                                            <SessionTooltip />
-                                        }
-                                        cursor={{
-                                            fill:
-                                                'rgba(0, 0, 0, 0.03)'
-                                        }}
-                                    />
+                        <YAxis
+
+                            allowDecimals={
+                                false
+                            }
+
+                            axisLine={
+                                false
+                            }
+
+                            tickLine={
+                                false
+                            }
+
+                            tick={{
+
+                                fill:
+                                    'var(--color-text-secondary)',
+
+                                fontSize:
+                                    12
+
+                            }}
+
+                            domain={[
+                                0,
+                                'auto'
+                            ]}
+
+                        />
 
 
-                                    <Bar
+                        <Tooltip
 
-                                        dataKey="sessions"
+                            cursor={{
 
-                                        name="Sessões"
+                                fill:
+                                    'var(--color-surface-secondary)',
 
-                                        radius={[
-                                            6,
-                                            6,
-                                            0,
-                                            0
-                                        ]}
+                                opacity:
+                                    0.7
 
-                                        maxBarSize={
-                                            52
-                                        }
+                            }}
 
-                                    />
+                            contentStyle={{
 
-                                </BarChart>
+                                background:
+                                    'var(--color-surface)',
 
-                            </ResponsiveContainer>
+                                border:
+                                    '1px solid var(--color-border)',
 
-                        </div>
+                                borderRadius:
+                                    '10px',
 
-                    )
-            }
+                                color:
+                                    'var(--color-text-primary)',
+
+                                boxShadow:
+                                    'var(--shadow-md)'
+
+                            }}
+
+                            labelStyle={{
+
+                                color:
+                                    'var(--color-text-primary)',
+
+                                fontWeight:
+                                    700
+
+                            }}
+
+                            itemStyle={{
+
+                                color:
+                                    'var(--color-warning)'
+
+                            }}
+
+                            formatter={(
+                                value
+                            ) => {
+
+                                const sessions =
+                                    Number(
+                                        value
+                                    );
+
+
+                                return [
+
+                                    `${sessions} ${
+                                        sessions === 1
+                                            ? 'sessão'
+                                            : 'sessões'
+                                    }`,
+
+                                    'Sessões'
+
+                                ];
+
+                            }}
+
+                        />
+
+
+                        <Bar
+
+                            dataKey="sessions"
+
+                            name="Sessões"
+
+                            fill={
+                                'var(--color-warning)'
+                            }
+
+                            radius={[
+                                7,
+                                7,
+                                0,
+                                0
+                            ]}
+
+                            maxBarSize={
+                                52
+                            }
+
+                            activeBar={{
+
+                                fill:
+                                    'var(--color-primary-hover)'
+
+                            }}
+
+                        />
+
+                    </BarChart>
+
+                </ResponsiveContainer>
+
+            </div>
 
         </section>
 

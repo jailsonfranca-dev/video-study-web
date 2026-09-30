@@ -1,0 +1,291 @@
+/*
+ * =========================================
+ * TEMA GLOBAL
+ * =========================================
+ */
+
+:root,
+[data-theme='light'] {
+
+    color-scheme: light;
+
+
+    /*
+     * BACKGROUNDS
+     */
+
+    --color-background: #f8fafc;
+
+    --color-surface: #ffffff;
+
+    --color-surface-secondary: #f1f5f9;
+
+    --color-surface-tertiary: #e2e8f0;
+
+    --color-surface-hover: #f8fafc;
+
+
+    /*
+     * TEXTOS
+     */
+
+    --color-text-primary: #0f172a;
+
+    --color-text-secondary: #64748b;
+
+    --color-text-muted: #94a3b8;
+
+    --color-text-inverse: #ffffff;
+
+
+    /*
+     * BORDAS
+     */
+
+    --color-border: #e2e8f0;
+
+    --color-border-strong: #cbd5e1;
+
+
+    /*
+     * PRIMARY
+     */
+
+    --color-primary: #2563eb;
+
+    --color-primary-hover: #1d4ed8;
+
+    --color-primary-soft: #eff6ff;
+
+
+    /*
+     * SUCCESS
+     */
+
+    --color-success: #16a34a;
+
+    --color-success-soft: #f0fdf4;
+
+
+    /*
+     * WARNING
+     */
+
+    --color-warning: #d97706;
+
+    --color-warning-soft: #fffbeb;
+
+
+    /*
+     * ERROR
+     */
+
+    --color-danger: #dc2626;
+
+    --color-danger-soft: #fef2f2;
+
+
+    /*
+     * SOMBRAS
+     */
+
+    --shadow-sm:
+            0 1px 2px
+            rgba(
+                    15,
+                    23,
+                    42,
+                    0.05
+            );
+
+    --shadow-md:
+            0 4px 12px
+            rgba(
+                    15,
+                    23,
+                    42,
+                    0.08
+            );
+
+    --shadow-lg:
+            0 10px 30px
+            rgba(
+                    15,
+                    23,
+                    42,
+                    0.12
+            );
+
+
+    /*
+     * SKELETON
+     */
+
+    --color-skeleton: #e2e8f0;
+
+    --color-skeleton-highlight:
+            rgba(
+                    255,
+                    255,
+                    255,
+                    0.65
+            );
+
+
+    /*
+     * SCROLLBAR
+     */
+
+    --color-scrollbar-track: #f1f5f9;
+
+    --color-scrollbar-thumb: #cbd5e1;
+
+    --color-scrollbar-thumb-hover: #94a3b8;
+
+}
+
+
+/*
+ * =========================================
+ * DARK MODE
+ * =========================================
+ */
+
+[data-theme='dark'] {
+
+    color-scheme: dark;
+
+
+    /*
+     * BACKGROUNDS
+     */
+
+    --color-background: #0f172a;
+
+    --color-surface: #111827;
+
+    --color-surface-secondary: #1e293b;
+
+    --color-surface-tertiary: #334155;
+
+    --color-surface-hover: #1e293b;
+
+
+    /*
+     * TEXTOS
+     */
+
+    --color-text-primary: #f8fafc;
+
+    --color-text-secondary: #cbd5e1;
+
+    --color-text-muted: #94a3b8;
+
+    --color-text-inverse: #0f172a;
+
+
+    /*
+     * BORDAS
+     */
+
+    --color-border: #334155;
+
+    --color-border-strong: #475569;
+
+
+    /*
+     * PRIMARY
+     */
+
+    --color-primary: #3b82f6;
+
+    --color-primary-hover: #60a5fa;
+
+    --color-primary-soft: #172554;
+
+
+    /*
+     * SUCCESS
+     */
+
+    --color-success: #22c55e;
+
+    --color-success-soft: #052e16;
+
+
+    /*
+     * WARNING
+     */
+
+    --color-warning: #f59e0b;
+
+    --color-warning-soft: #451a03;
+
+
+    /*
+     * ERROR
+     */
+
+    --color-danger: #f87171;
+
+    --color-danger-soft: #450a0a;
+
+
+    /*
+     * SOMBRAS
+     */
+
+    --shadow-sm:
+            0 1px 2px
+            rgba(
+                    0,
+                    0,
+                    0,
+                    0.25
+            );
+
+    --shadow-md:
+            0 4px 14px
+            rgba(
+                    0,
+                    0,
+                    0,
+                    0.32
+            );
+
+    --shadow-lg:
+            0 12px 35px
+            rgba(
+                    0,
+                    0,
+                    0,
+                    0.4
+            );
+
+
+    /*
+     * SKELETON
+     */
+
+    --color-skeleton: #1e293b;
+
+    --color-skeleton-highlight:
+            rgba(
+                    255,
+                    255,
+                    255,
+                    0.08
+            );
+
+
+    /*
+     * SCROLLBAR
+     */
+
+    --color-scrollbar-track: #0f172a;
+
+    --color-scrollbar-thumb: #334155;
+
+    --color-scrollbar-thumb-hover: #475569;
+
+}

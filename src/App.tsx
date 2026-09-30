@@ -10,7 +10,7 @@ import {
 
 import {
     AppLayout
-} from './layouts/AppLayout';
+} from './components/layouts/AppLayout';
 
 import {
     LoginPage

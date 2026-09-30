@@ -8,6 +8,10 @@ import {
     useAuth
 } from '../hooks/useAuth';
 
+import {
+    ThemeToggle
+} from './layouts/ThemeToggle';
+
 
 export function AppHeader() {
 
@@ -95,8 +99,10 @@ export function AppHeader() {
 
 
             <div className="app-header-user">
+                <ThemeToggle />
 
                 {
+
                     user && (
 
                         <div className="app-user-info">
