@@ -4,7 +4,44 @@ import {
 } from '../auth/authSession';
 
 
+/*
+ * =========================================
+ * API BASE URL
+ * =========================================
+ *
+ * DESENVOLVIMENTO:
+ *
+ * VITE_API_URL não existe
+ *      ↓
+ * /api
+ *      ↓
+ * proxy do Vite
+ *      ↓
+ * http://localhost:3000
+ *
+ *
+ * PRODUÇÃO:
+ *
+ * VITE_API_URL=
+ * https://video-study-api.onrender.com
+ *
+ *      ↓
+ *
+ * https://video-study-api.onrender.com
+ */
+
+const environmentApiUrl =
+    import.meta.env
+        .VITE_API_URL
+        ?.trim()
+        .replace(
+            /\/+$/,
+            ''
+        );
+
+
 const API_PREFIX =
+    environmentApiUrl ||
     '/api';
 
 
@@ -90,18 +127,82 @@ function handleUnauthorized() {
 
 /*
  * =========================================
- * LER CORPO DA RESPOSTA COM SEGURANÇA
+ * NORMALIZAR PATH
  * =========================================
- *
- * Não usamos response.json() diretamente.
- *
- * Primeiro lemos como texto.
- *
- * Isso evita:
- *
- * Unexpected end of JSON input
- *
- * quando o backend retorna corpo vazio.
+ */
+
+function normalizeApiPath(
+    path:
+        string
+) {
+
+    /*
+     * Aceita tanto:
+     *
+     * /library
+     *
+     * quanto:
+     *
+     * /api/library
+     *
+     * e evita gerar:
+     *
+     * /api/api/library
+     */
+
+    const withoutApiPrefix =
+        path.replace(
+            /^\/api(?=\/|$)/,
+            ''
+        );
+
+
+    if (
+        withoutApiPrefix.startsWith(
+            '/'
+        )
+    ) {
+
+        return withoutApiPrefix;
+
+    }
+
+
+    return (
+        `/${withoutApiPrefix}`
+    );
+
+}
+
+
+/*
+ * =========================================
+ * MONTAR URL
+ * =========================================
+ */
+
+function buildApiUrl(
+    path:
+        string
+) {
+
+    const normalizedPath =
+        normalizeApiPath(
+            path
+        );
+
+
+    return (
+        `${API_PREFIX}${normalizedPath}`
+    );
+
+}
+
+
+/*
+ * =========================================
+ * LER CORPO DA RESPOSTA
+ * =========================================
  */
 
 async function readResponseBody<T>(
@@ -113,9 +214,6 @@ async function readResponseBody<T>(
         await response.text();
 
 
-    /*
-     * Corpo vazio.
-     */
     if (
         !text.trim()
     ) {
@@ -133,9 +231,6 @@ async function readResponseBody<T>(
             );
 
 
-    /*
-     * JSON
-     */
     if (
         contentType
             ?.includes(
@@ -152,11 +247,6 @@ async function readResponseBody<T>(
 
         } catch {
 
-            /*
-             * O servidor disse que era JSON,
-             * mas retornou conteúdo inválido.
-             */
-
             throw new Error(
                 'O servidor retornou uma resposta JSON inválida.'
             );
@@ -166,9 +256,6 @@ async function readResponseBody<T>(
     }
 
 
-    /*
-     * Texto normal.
-     */
     return text;
 
 }
@@ -343,9 +430,10 @@ export async function apiFetch<T>(
 
 
     /*
-     * Só adicionamos Content-Type JSON
-     * quando existe body e ele não é FormData.
+     * Content-Type somente quando
+     * existe body e não é FormData.
      */
+
     if (
         fetchOptions.body &&
         !(
@@ -386,6 +474,18 @@ export async function apiFetch<T>(
 
     /*
      * =====================================
+     * URL
+     * =====================================
+     */
+
+    const url =
+        buildApiUrl(
+            path
+        );
+
+
+    /*
+     * =====================================
      * REQUEST
      * =====================================
      */
@@ -393,7 +493,7 @@ export async function apiFetch<T>(
     const response =
         await fetch(
 
-            `${API_PREFIX}${path}`,
+            url,
 
             {
 
