@@ -3,6 +3,10 @@ import {
     useNavigate
 } from 'react-router-dom';
 
+import {
+    useState
+} from 'react';
+
 
 import {
     useAuth
@@ -25,19 +29,73 @@ export function AppHeader() {
     } =
         useAuth();
 
+    const [
+        loggingOut,
+        setLoggingOut
+    ] =
+        useState(
+            false
+        );
+
 
     async function handleLogout() {
 
-        await logout();
+        /*
+         * Impede vários cliques
+         * enquanto o logout está
+         * sendo processado.
+         */
+        if (
+            loggingOut
+        ) {
+            return;
+        }
 
 
-        navigate(
-            '/login',
-            {
-                replace:
-                    true
-            }
-        );
+        try {
+
+            setLoggingOut(
+                true
+            );
+
+
+            /*
+             * AuthProvider.logout():
+             *
+             * 1. remove Media Session;
+             * 2. limpa JWT;
+             * 3. limpa user.
+             */
+            await logout();
+
+
+            /*
+             * Após concluir,
+             * volta para o Login.
+             */
+            navigate(
+                '/login',
+                {
+                    replace: true
+                }
+            );
+
+
+        } finally {
+
+            /*
+             * Normalmente o Header será
+             * desmontado após o navigate.
+             *
+             * Mesmo assim mantemos este
+             * finally para deixar o fluxo
+             * completo.
+             */
+            setLoggingOut(
+                false
+            );
+
+        }
 
     }
 
@@ -49,22 +107,15 @@ export function AppHeader() {
             <button
                 type="button"
                 className="app-brand"
-                onClick={
-                    () =>
-                        navigate(
-                            '/library'
-                        )
-                }
+                onClick={() => navigate('/dashboard')}
             >
+        <span className="app-brand-icon">
+            ▶
+        </span>
 
-                <span className="app-brand-icon">
-                    ▶
-                </span>
-
-                <span>
-                    Video Study
-                </span>
-
+                <span className="app-brand-text">
+            Video Study
+        </span>
             </button>
 
 
@@ -72,24 +123,21 @@ export function AppHeader() {
 
                 <NavLink
                     to="/dashboard"
-                    className={
-                        ({ isActive }) =>
-                            isActive
-                                ? 'active'
-                                : ''
+                    className={({isActive}) =>
+                        isActive
+                            ? 'active'
+                            : ''
                     }
                 >
                     Dashboard
                 </NavLink>
 
-
                 <NavLink
                     to="/library"
-                    className={
-                        ({ isActive }) =>
-                            isActive
-                                ? 'active'
-                                : ''
+                    className={({isActive}) =>
+                        isActive
+                            ? 'active'
+                            : ''
                     }
                 >
                     Biblioteca
@@ -99,39 +147,74 @@ export function AppHeader() {
 
 
             <div className="app-header-user">
-                <ThemeToggle />
 
-                {
+                <ThemeToggle/>
 
-                    user && (
+                <div className="app-user-info">
 
-                        <div className="app-user-info">
+                    <strong>
+                        {user?.name || 'Usuário'}
+                    </strong>
 
-                            <strong>
-                                {
-                                    user.name ??
-                                    'Usuário'
-                                }
-                            </strong>
+                    <span>
+                {user?.email}
+            </span>
 
-                            <span>
-                                {user.email}
-                            </span>
-
-                        </div>
-
-                    )
-                }
-
+                </div>
 
                 <button
+
                     type="button"
+
                     className="header-logout-button"
+
                     onClick={
                         handleLogout
                     }
+
+                    disabled={
+                        loggingOut
+                    }
+
+                    aria-busy={
+                        loggingOut
+                    }
+
                 >
-                    Sair
+
+                    <span
+                        className="async-button-content"
+                    >
+
+                        {
+                            loggingOut && (
+
+                                <span
+
+                                    className="
+                                        button-spinner
+                                        button-spinner-secondary
+                                    "
+
+                                    aria-hidden="true"
+
+                                />
+
+                            )
+                        }
+
+
+                        <span>
+
+                            {
+                                loggingOut
+                                    ? 'Saindo...'
+                                    : 'Sair'
+                            }
+
+                        </span>
+
+                    </span>
                 </button>
 
             </div>

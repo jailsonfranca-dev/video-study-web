@@ -2,6 +2,9 @@ import {
     useMemo
 } from 'react';
 
+import '@xyflow/react/dist/style.css';
+import './StudyMaterialPanel.css';
+
 import {
     ReactFlow,
     Background,
@@ -246,6 +249,8 @@ function convertMindMapToFlow(
                 y: 0
 
             },
+            width: NODE_WIDTH,
+            height: NODE_HEIGHT,
 
             sourcePosition:
             Position.Bottom,
@@ -391,7 +396,10 @@ function convertMindMapToFlow(
                     palette.edge,
 
                     strokeWidth:
-                        1.5
+                        2.5,
+
+                    strokeOpacity:
+                        1
 
                 },
 
@@ -714,6 +722,11 @@ export function StudyMindMap({
                 edges={
                     edges
                 }
+
+                colorMode={
+                    theme
+                }
+
 
 
                 /*

@@ -1,4 +1,5 @@
 import {
+    useEffect,
     useState,
     type FormEvent
 } from 'react';
@@ -19,167 +20,399 @@ export function LoginPage() {
 
 
     const {
+        user,
+        restoring,
         login
-    } = useAuth();
+    } =
+        useAuth();
 
+
+    /*
+     * =========================================
+     * FORMULÁRIO
+     * =========================================
+     */
 
     const [
         email,
         setEmail
-    ] = useState('');
+    ] =
+        useState('');
 
 
     const [
         password,
         setPassword
-    ] = useState('');
+    ] =
+        useState('');
+
+
+    /*
+     * =========================================
+     * ESTADOS DE UX
+     * =========================================
+     */
+
+    const [
+        submitting,
+        setSubmitting
+    ] =
+        useState(
+            false
+        );
 
 
     const [
         error,
         setError
-    ] = useState('');
+    ] =
+        useState<string | null>(
+            null
+        );
 
 
-    const [
-        loading,
-        setLoading
-    ] = useState(false);
+    /*
+     * =========================================
+     * USUÁRIO JÁ AUTENTICADO
+     * =========================================
+     */
 
-
-    async function handleSubmit(
-        event: FormEvent<HTMLFormElement>
-    ) {
-
-        event.preventDefault();
-
-        setError('');
-
-        setLoading(true);
-
-
-        try {
-
-            await login(
-                email,
-                password
-            );
-
-
-            navigate(
-                '/library'
-            );
-
-
-        } catch (error) {
+    useEffect(
+        () => {
 
             if (
-                error instanceof Error
+                !restoring &&
+                user
             ) {
 
-                setError(
-                    error.message
-                );
-
-            } else {
-
-                setError(
-                    'Erro inesperado.'
+                navigate(
+                    '/dashboard',
+                    {
+                        replace: true
+                    }
                 );
 
             }
 
+        },
+        [
+            user,
+            restoring,
+            navigate
+        ]
+    );
+
+
+    /*
+     * =========================================
+     * LOGIN
+     * =========================================
+     */
+
+    async function handleSubmit(
+        event:
+            FormEvent<HTMLFormElement>
+    ) {
+
+        event.preventDefault();
+
+
+        /*
+         * Proteção contra clique duplo.
+         */
+
+        if (
+            submitting
+        ) {
+
+            return;
+
+        }
+
+
+        /*
+         * Validação básica.
+         */
+
+        if (
+            !email.trim() ||
+            !password
+        ) {
+
+            setError(
+                'Informe o e-mail e a senha.'
+            );
+
+            return;
+
+        }
+
+
+        try {
+
+            /*
+             * =================================
+             * INICIAR FEEDBACK
+             * =================================
+             */
+
+            setSubmitting(
+                true
+            );
+
+
+            setError(
+                null
+            );
+
+
+            /*
+             * O AuthProvider:
+             *
+             * 1. realiza login;
+             * 2. salva JWT;
+             * 3. atualiza usuário;
+             * 4. cria Media Session.
+             */
+
+            await login(
+                email.trim(),
+                password
+            );
+
+
+            /*
+             * =================================
+             * REDIRECIONAR
+             * =================================
+             */
+
+            navigate(
+                '/dashboard',
+                {
+                    replace: true
+                }
+            );
+
+
+        } catch (
+            error
+            ) {
+
+            setError(
+
+                error instanceof Error
+
+                    ? error.message
+
+                    : 'Não foi possível entrar. Tente novamente.'
+
+            );
+
 
         } finally {
 
-            setLoading(false);
+            setSubmitting(
+                false
+            );
 
         }
+
     }
 
 
+    /*
+     * =========================================
+     * RESTAURAÇÃO DA SESSÃO
+     * =========================================
+     */
+
+    if (
+        restoring
+    ) {
+
+        return (
+
+            <main
+                className="session-loading"
+            >
+
+                <div
+                    className="loading-spinner"
+                />
+
+                <p>
+                    Restaurando sessão...
+                </p>
+
+            </main>
+
+        );
+
+    }
+
+
+    /*
+     * =========================================
+     * LOGIN
+     * =========================================
+     */
+
     return (
 
-        <main className="login-page">
+        <main
+            className="login-page"
+        >
 
-            <section className="login-card">
+            <section
+                className="login-card"
+            >
 
-                <div className="login-brand">
+                {/*
+                 * =================================
+                 * MARCA
+                 * =================================
+                 */}
 
-                    <span className="brand-icon">
+                <header
+                    className="login-brand"
+                >
+
+                    <div
+                        className="brand-icon"
+                        aria-hidden="true"
+                    >
                         ▶
-                    </span>
+                    </div>
+
 
                     <h1>
                         Video Study
                     </h1>
 
+
                     <p>
                         Sua biblioteca de estudos em vídeo
                     </p>
 
-                </div>
+                </header>
 
+
+                {/*
+                 * =================================
+                 * FORM
+                 * =================================
+                 */}
 
                 <form
+                    className="login-form"
                     onSubmit={
                         handleSubmit
                     }
-                    className="login-form"
+                    aria-busy={
+                        submitting
+                    }
                 >
 
-                    <div className="form-group">
+                    <div
+                        className="form-group"
+                    >
 
-                        <label htmlFor="email">
+                        <label
+                            htmlFor="email"
+                        >
                             E-mail
                         </label>
 
+
                         <input
+
                             id="email"
+
                             type="email"
-                            value={email}
+
+                            value={
+                                email
+                            }
+
                             onChange={
                                 event =>
                                     setEmail(
                                         event.target.value
                                     )
                             }
+
                             placeholder="seu@email.com"
-                            required
+
                             autoComplete="email"
+
+                            disabled={
+                                submitting
+                            }
+
+                            required
+
                         />
 
                     </div>
 
 
-                    <div className="form-group">
+                    <div
+                        className="form-group"
+                    >
 
-                        <label htmlFor="password">
+                        <label
+                            htmlFor="password"
+                        >
                             Senha
                         </label>
 
+
                         <input
+
                             id="password"
+
                             type="password"
-                            value={password}
+
+                            value={
+                                password
+                            }
+
                             onChange={
                                 event =>
                                     setPassword(
                                         event.target.value
                                     )
                             }
+
                             placeholder="Sua senha"
-                            required
+
                             autoComplete="current-password"
+
+                            disabled={
+                                submitting
+                            }
+
+                            required
+
                         />
 
                     </div>
 
 
+                    {/*
+                     * =================================
+                     * ERRO
+                     * =================================
+                     */}
+
                     {
                         error && (
 
-                            <div className="form-error">
+                            <div
+                                className="form-error"
+                                role="alert"
+                            >
 
                                 {error}
 
@@ -189,19 +422,55 @@ export function LoginPage() {
                     }
 
 
+                    {/*
+                     * =================================
+                     * BOTÃO
+                     * =================================
+                     */}
+
                     <button
+
                         type="submit"
+
                         className="primary-button"
+
                         disabled={
-                            loading
+                            submitting
                         }
+
+                        aria-busy={
+                            submitting
+                        }
+
                     >
 
-                        {
-                            loading
-                                ? 'Entrando...'
-                                : 'Entrar'
-                        }
+                        <span
+                            className="async-button-content"
+                        >
+
+                            {
+                                submitting && (
+
+                                    <span
+                                        className="button-spinner"
+                                        aria-hidden="true"
+                                    />
+
+                                )
+                            }
+
+
+                            <span>
+
+                                {
+                                    submitting
+                                        ? 'Entrando...'
+                                        : 'Entrar'
+                                }
+
+                            </span>
+
+                        </span>
 
                     </button>
 
@@ -210,5 +479,7 @@ export function LoginPage() {
             </section>
 
         </main>
+
     );
+
 }

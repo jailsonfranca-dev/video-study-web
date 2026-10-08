@@ -4,7 +4,7 @@ import {
 
 import {
     AuthContext
-} from '../contexts/AuthContext';
+} from '../contexts/auth-context';
 
 
 export function useAuth() {

@@ -785,79 +785,58 @@
 .mind-map-container
 .react-flow__background {
     background:
-            var(--color-surface-secondary);
+            transparent !important;
+}
+
+
+/* =========================================================
+   MAPA MENTAL — CONEXÕES
+========================================================= */
+
+.mind-map-container
+.react-flow__edges {
+    overflow:
+            visible;
 }
 
 
 .mind-map-container
 .react-flow__edge-path {
     stroke:
-            var(--color-border-strong);
+            #60a5fa !important;
+
+    stroke-width:
+            2.5px !important;
+
+    stroke-opacity:
+            1 !important;
+
+    fill:
+            none !important;
+
+    vector-effect:
+            non-scaling-stroke;
+}
+
+
+.mind-map-container
+.react-flow__edge.selected
+.react-flow__edge-path {
+    stroke:
+            #3b82f6 !important;
+
+    stroke-width:
+            3px !important;
 }
 
 
 .mind-map-container
 .react-flow__connection-path {
     stroke:
-            var(--color-primary);
-}
+            #60a5fa !important;
 
-
-.mind-map-container
-.react-flow__controls {
-    overflow: hidden;
-
-    border:
-            1px solid
-            var(--color-border);
-
-    border-radius: 8px;
-
-    box-shadow:
-            var(--shadow-md);
-}
-
-
-.mind-map-container
-.react-flow__controls-button {
-    border-bottom:
-            1px solid
-            var(--color-border);
-
-    background:
-            var(--color-surface);
-
-    color:
-            var(--color-text-primary);
-}
-
-
-.mind-map-container
-.react-flow__controls-button:hover {
-    background:
-            var(--color-surface-hover);
-}
-
-
-.mind-map-container
-.react-flow__controls-button svg {
-    fill:
-            currentColor;
-}
-
-
-.mind-map-container
-.react-flow__minimap {
-    overflow: hidden;
-
-    border:
-            1px solid
-            var(--color-border);
-
-    border-radius: 8px;
-
-    background:
-            var(--color-surface);
+    stroke-width:
+            2.5px;
 }
 
 
@@ -1149,3 +1128,279 @@ prefers-reduced-motion:
     }
 
 }
+
+/* =========================================================
+   IA10.11.5.1.5
+   MATERIAL IA — FEEDBACK DE GERAÇÃO
+========================================================= */
+
+.study-material {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* =========================================================
+   BOTÃO ASSÍNCRONO
+========================================================= */
+
+.study-material
+.async-button-content {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+}
+
+
+/* =========================================================
+   SPINNER
+========================================================= */
+
+.study-material
+.button-spinner {
+    width: 16px;
+    height: 16px;
+
+    flex:
+            0 0 16px;
+
+    display: inline-block;
+
+    border:
+            2px solid
+            rgba(
+                    255,
+                    255,
+                    255,
+                    0.35
+            );
+
+    border-top-color:
+            #ffffff;
+
+    border-radius: 50%;
+
+    animation:
+            study-material-spinner
+            0.7s
+            linear
+            infinite;
+}
+
+
+@keyframes study-material-spinner {
+
+    to {
+        transform:
+                rotate(360deg);
+    }
+
+}
+
+
+/* =========================================================
+   PROCESSANDO MATERIAL IA
+========================================================= */
+
+.study-material
+.ai-generation-status {
+    width: 100%;
+
+    display: flex !important;
+
+    align-items: flex-start;
+
+    gap: 12px;
+
+    margin-top: 16px;
+
+    padding: 14px 16px;
+
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--color-primary) 35%,
+                    var(--color-border)
+            );
+
+    border-radius: 10px;
+
+    background:
+            var(--color-primary-soft);
+
+    color:
+            var(--color-text-primary);
+
+    visibility: visible !important;
+
+    opacity: 1 !important;
+}
+
+
+.study-material
+.ai-generation-status-icon {
+    flex-shrink: 0;
+
+    display: inline-flex;
+
+    font-size: 20px;
+
+    line-height: 1.2;
+}
+
+
+.study-material
+.ai-generation-status > div {
+    min-width: 0;
+
+    display: block !important;
+}
+
+
+.study-material
+.ai-generation-status strong {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color:
+            var(--color-text-primary);
+
+    font-size: 14px;
+
+    font-weight: 700;
+}
+
+
+.study-material
+.ai-generation-status p {
+    display: block;
+
+    margin: 0;
+
+    color:
+            var(--color-text-secondary);
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   RESULTADO DA GERAÇÃO
+========================================================= */
+
+.study-material
+.ai-generation-feedback {
+    width: 100%;
+
+    display: flex !important;
+
+    align-items: flex-start;
+
+    gap: 8px;
+
+    margin-top: 12px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    line-height: 1.45;
+
+    overflow-wrap: anywhere;
+}
+
+
+.study-material
+.ai-generation-feedback > span:first-child {
+    flex-shrink: 0;
+
+    font-weight: 800;
+}
+
+
+.study-material
+.ai-generation-feedback-success {
+    color:
+            var(--color-success);
+}
+
+
+.study-material
+.ai-generation-feedback-error {
+    color:
+            var(--color-danger);
+}
+
+
+/* =========================================================
+   BOTÃO DESABILITADO
+========================================================= */
+
+.study-material button:disabled {
+    opacity: 0.7;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (
+max-width: 600px
+) {
+
+    .study-material
+    .ai-generation-status {
+        gap: 10px;
+
+        padding: 12px;
+    }
+
+
+    .study-material
+    .ai-generation-status strong {
+        font-size: 13px;
+    }
+
+
+    .study-material
+    .ai-generation-status p {
+        font-size: 12px;
+    }
+
+
+    .study-material
+    .ai-generation-feedback {
+        font-size: 12px;
+    }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (
+prefers-reduced-motion:
+        reduce
+) {
+
+    .study-material
+    .button-spinner {
+        animation-duration: 1.5s;
+    }
+
+}
+
+

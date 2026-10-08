@@ -1,9 +1,12 @@
 import {
-    createContext,
     useEffect,
     useState,
     type ReactNode
 } from 'react';
+
+import {
+    AuthContext
+} from './auth-context';
 
 import {
     clearAccessToken,
@@ -20,37 +23,6 @@ import {
 import type {
     User
 } from '../api/authApi';
-
-
-interface AuthContextValue {
-
-    user:
-        User | null;
-
-    token:
-        string | null;
-
-    restoring:
-        boolean;
-
-    login:
-        (
-            email: string,
-            password: string
-        ) => Promise<void>;
-
-    logout:
-        () => Promise<void>;
-
-}
-
-
-export const AuthContext =
-    createContext<
-        AuthContextValue | undefined
-    >(
-        undefined
-    );
 
 
 interface AuthProviderProps {
@@ -169,9 +141,7 @@ export function AuthProvider({
                      * VALIDAR TOKEN
                      * =================================
                      *
-                     * getMe() usa apiFetch().
-                     *
-                     * Portanto:
+                     * getMe() utiliza apiFetch().
                      *
                      * /auth/me
                      *
@@ -207,6 +177,9 @@ export function AuthProvider({
                      * =================================
                      * RECRIAR COOKIE DE MÍDIA
                      * =================================
+                     *
+                     * O cookie HttpOnly é necessário
+                     * para o stream do elemento <video>.
                      */
 
                     await createMediaSession();
@@ -217,10 +190,11 @@ export function AuthProvider({
                     ) {
 
                     /*
-                     * A chamada pode ter recebido 401.
+                     * Uma falha aqui normalmente significa
+                     * que a sessão não é mais válida.
                      *
-                     * apiFetch() já limpa o token
-                     * automaticamente.
+                     * apiFetch() também pode já ter removido
+                     * o token ao receber HTTP 401.
                      */
 
                     clearAccessToken();
@@ -241,19 +215,11 @@ export function AuthProvider({
                     }
 
 
-                    /*
-                     * Não precisamos jogar o erro
-                     * novamente.
-                     *
-                     * Uma sessão expirada simplesmente
-                     * significa que o usuário deverá
-                     * fazer login novamente.
-                     */
-
                     console.warn(
                         'Não foi possível restaurar a sessão.',
                         error
                     );
+
 
                 } finally {
 
@@ -301,19 +267,18 @@ export function AuthProvider({
         password:
             string
 
-    ) {
+    ): Promise<void> {
 
         /*
-         * loginRequest() usa:
+         * loginRequest() utiliza:
          *
          * apiFetch('/auth/login')
          *
-         * que vira:
+         * que através do proxy vira:
          *
          * /api/auth/login
          *
-         * O próprio authApi salva o JWT
-         * em sessionStorage.
+         * authApi salva o JWT no sessionStorage.
          */
 
         const response =
@@ -328,7 +293,7 @@ export function AuthProvider({
 
         /*
          * Atualiza imediatamente
-         * o estado do React.
+         * o estado global da aplicação.
          */
 
         setToken(
@@ -346,9 +311,9 @@ export function AuthProvider({
          * COOKIE HTTPONLY DO STREAM
          * =====================================
          *
-         * O token já foi salvo pelo login,
-         * portanto createMediaSession()
-         * consegue enviar Authorization.
+         * Como o JWT já foi salvo pelo login,
+         * createMediaSession() consegue enviar
+         * Authorization normalmente.
          */
 
         await createMediaSession();
@@ -362,7 +327,8 @@ export function AuthProvider({
      * =========================================
      */
 
-    async function logout() {
+    async function logout():
+        Promise<void> {
 
         try {
 
@@ -370,6 +336,7 @@ export function AuthProvider({
              * Remove primeiro o cookie
              * HttpOnly usado pelo player.
              */
+
             await removeMediaSession();
 
 
@@ -378,16 +345,19 @@ export function AuthProvider({
             ) {
 
             /*
-             * Logout local deve acontecer
-             * mesmo se o backend estiver
-             * indisponível ou o token
-             * já estiver expirado.
+             * O logout local deve continuar
+             * funcionando mesmo se:
+             *
+             * - backend estiver indisponível;
+             * - JWT estiver expirado;
+             * - cookie já tiver desaparecido.
              */
 
             console.warn(
                 'Não foi possível remover a sessão de mídia.',
                 error
             );
+
 
         } finally {
 

@@ -1,6 +1,7 @@
 import {
     useMemo,
-    useState
+    useState,
+    useEffect,
 } from 'react';
 
 
@@ -126,6 +127,15 @@ export function StudyCalendar({
             null
         );
 
+    const [
+        today,
+        setToday
+    ] =
+        useState<Date>(
+            () =>
+                new Date()
+        );
+
 
     const activityMap =
         useMemo(
@@ -206,6 +216,82 @@ export function StudyCalendar({
         ) ?? 0
             : null;
 
+    useEffect(
+        () => {
+
+            let timerId:
+                number;
+
+
+            function scheduleNextDay() {
+
+                const now =
+                    new Date();
+
+
+                const nextDay =
+                    new Date(
+                        now
+                    );
+
+
+                /*
+                 * Próxima meia-noite.
+                 */
+                nextDay.setHours(
+                    24,
+                    0,
+                    0,
+                    100
+                );
+
+
+                const delay =
+                    nextDay.getTime()
+                    -
+                    now.getTime();
+
+
+                timerId =
+                    window.setTimeout(
+                        () => {
+
+                            /*
+                             * Atualiza o dia atual.
+                             */
+                            setToday(
+                                new Date()
+                            );
+
+
+                            /*
+                             * Agenda novamente para
+                             * a próxima meia-noite.
+                             */
+                            scheduleNextDay();
+
+                        },
+                        delay
+                    );
+
+            }
+
+
+            scheduleNextDay();
+
+
+            return () => {
+
+                window.clearTimeout(
+                    timerId
+                );
+
+            };
+
+        },
+        []
+    );
+
 
     return (
 
@@ -236,6 +322,10 @@ export function StudyCalendar({
 
                 onMonthChange={
                     onMonthChange
+                }
+
+                today={
+                    today
                 }
 
                 locale={

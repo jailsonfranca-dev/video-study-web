@@ -80,6 +80,17 @@ import {
 import '../components/dashboard/DashboardPage.css';
 
 
+type GoalFeedback =
+    | {
+    type:
+        'success' | 'error';
+
+    message:
+        string;
+}
+    | null;
+
+
 export function DashboardPage() {
 
     /*
@@ -112,6 +123,14 @@ export function DashboardPage() {
     ] =
         useState(
             false
+        );
+
+    const [
+        weeklyGoalFeedback,
+        setWeeklyGoalFeedback
+    ] =
+        useState<GoalFeedback>(
+            null
         );
 
 
@@ -160,6 +179,14 @@ export function DashboardPage() {
     ] =
         useState(
             false
+        );
+
+    const [
+        studyTimeGoalFeedback,
+        setStudyTimeGoalFeedback
+    ] =
+        useState<GoalFeedback>(
+            null
         );
 
 
@@ -268,6 +295,14 @@ export function DashboardPage() {
     const [
         syncMessage,
         setSyncMessage
+    ] =
+        useState<string | null>(
+            null
+        );
+
+    const [
+        syncError,
+        setSyncError
     ] =
         useState<string | null>(
             null
@@ -604,18 +639,19 @@ export function DashboardPage() {
 
     function handleStartStudyTimeGoalEdit() {
 
-        if (!studyTime) {
-
+        if (
+            !studyTime
+        ) {
             return;
-
         }
 
 
         const hours =
             studyTime
                 .weeklyGoal
-                .targetMinutes /
-            60;
+                .targetSeconds
+            /
+            3600;
 
 
         setStudyTimeGoalHours(
@@ -630,7 +666,7 @@ export function DashboardPage() {
         );
 
 
-        setError(
+        setStudyTimeGoalFeedback(
             null
         );
 
@@ -638,6 +674,13 @@ export function DashboardPage() {
 
 
     function handleCancelStudyTimeGoalEdit() {
+
+        if (
+            savingStudyTimeGoal
+        ) {
+            return;
+        }
+
 
         setEditingStudyTimeGoal(
             false
@@ -649,20 +692,38 @@ export function DashboardPage() {
         );
 
 
-        setError(
+        setStudyTimeGoalFeedback(
             null
         );
 
     }
 
-
     async function handleSaveStudyTimeGoal() {
+
+        /*
+         * =====================================
+         * EVITAR SALVAMENTO DUPLO
+         * =====================================
+         */
+
+        if (
+            savingStudyTimeGoal
+        ) {
+            return;
+        }
+
 
         const hours =
             Number(
                 studyTimeGoalHours
             );
 
+
+        /*
+         * =====================================
+         * VALIDAÇÃO
+         * =====================================
+         */
 
         if (
             !Number.isFinite(
@@ -674,9 +735,16 @@ export function DashboardPage() {
             hours > 168
         ) {
 
-            setError(
-                'A meta semanal deve estar entre 0,1 e 168 horas.'
-            );
+            setStudyTimeGoalFeedback({
+
+                type:
+                    'error',
+
+                message:
+                    'A meta semanal deve estar entre 0,1 e 168 horas.'
+
+            });
+
 
             return;
 
@@ -692,12 +760,18 @@ export function DashboardPage() {
 
         try {
 
+            /*
+             * =====================================
+             * SALVANDO
+             * =====================================
+             */
+
             setSavingStudyTimeGoal(
                 true
             );
 
 
-            setError(
+            setStudyTimeGoalFeedback(
                 null
             );
 
@@ -726,15 +800,41 @@ export function DashboardPage() {
             );
 
 
-        } catch (error) {
+            /*
+             * =====================================
+             * SUCESSO
+             * =====================================
+             */
 
-            setError(
+            setStudyTimeGoalFeedback({
 
-                error instanceof Error
-                    ? error.message
-                    : 'Não foi possível atualizar a meta semanal de tempo.'
+                type:
+                    'success',
 
-            );
+                message:
+                    'Meta semanal de tempo atualizada com sucesso.'
+
+            });
+
+
+        } catch (
+            error
+            ) {
+
+            setStudyTimeGoalFeedback({
+
+                type:
+                    'error',
+
+                message:
+
+                    error instanceof Error
+
+                        ? error.message
+
+                        : 'Não foi possível atualizar a meta semanal de tempo.'
+
+            });
 
 
         } finally {
@@ -756,10 +856,10 @@ export function DashboardPage() {
 
     function handleStartWeeklyGoalEdit() {
 
-        if (!summary) {
-
+        if (
+            !summary
+        ) {
             return;
-
         }
 
 
@@ -777,7 +877,10 @@ export function DashboardPage() {
         );
 
 
-        setError(
+        /*
+         * Limpa feedback anterior.
+         */
+        setWeeklyGoalFeedback(
             null
         );
 
@@ -785,6 +888,13 @@ export function DashboardPage() {
 
 
     function handleCancelWeeklyGoalEdit() {
+
+        if (
+            savingWeeklyGoal
+        ) {
+            return;
+        }
+
 
         setEditingWeeklyGoal(
             false
@@ -796,7 +906,7 @@ export function DashboardPage() {
         );
 
 
-        setError(
+        setWeeklyGoalFeedback(
             null
         );
 
@@ -805,11 +915,30 @@ export function DashboardPage() {
 
     async function handleSaveWeeklyGoal() {
 
+        /*
+         * =====================================
+         * EVITAR SALVAMENTO DUPLO
+         * =====================================
+         */
+
+        if (
+            savingWeeklyGoal
+        ) {
+            return;
+        }
+
+
         const target =
             Number(
                 weeklyGoalInput
             );
 
+
+        /*
+         * =====================================
+         * VALIDAÇÃO
+         * =====================================
+         */
 
         if (
             !Number.isInteger(
@@ -821,9 +950,16 @@ export function DashboardPage() {
             target > 100
         ) {
 
-            setError(
-                'A meta semanal deve estar entre 1 e 100 aulas.'
-            );
+            setWeeklyGoalFeedback({
+
+                type:
+                    'error',
+
+                message:
+                    'A meta semanal deve estar entre 1 e 100 aulas.'
+
+            });
+
 
             return;
 
@@ -832,26 +968,41 @@ export function DashboardPage() {
 
         try {
 
+            /*
+             * =====================================
+             * SALVANDO
+             * =====================================
+             */
+
             setSavingWeeklyGoal(
                 true
             );
 
 
-            setError(
+            setWeeklyGoalFeedback(
                 null
             );
 
 
+            /*
+             * Atualiza no backend.
+             */
             await updateWeeklyGoal(
                 target
             );
 
 
+            /*
+             * Atualiza imediatamente os dados
+             * exibidos no Dashboard.
+             */
             const result =
                 await getDashboardSummary();
 
 
-            if (!result) {
+            if (
+                !result
+            ) {
 
                 throw new Error(
                     'Não foi possível atualizar o resumo do dashboard.'
@@ -875,15 +1026,41 @@ export function DashboardPage() {
             );
 
 
-        } catch (error) {
+            /*
+             * =====================================
+             * SUCESSO
+             * =====================================
+             */
 
-            setError(
+            setWeeklyGoalFeedback({
 
-                error instanceof Error
-                    ? error.message
-                    : 'Erro ao atualizar meta semanal.'
+                type:
+                    'success',
 
-            );
+                message:
+                    'Meta semanal atualizada com sucesso.'
+
+            });
+
+
+        } catch (
+            error
+            ) {
+
+            setWeeklyGoalFeedback({
+
+                type:
+                    'error',
+
+                message:
+
+                    error instanceof Error
+
+                        ? error.message
+
+                        : 'Não foi possível atualizar a meta semanal.'
+
+            });
 
 
         } finally {
@@ -895,7 +1072,6 @@ export function DashboardPage() {
         }
 
     }
-
 
     /*
      * =====================================
@@ -1001,7 +1177,28 @@ export function DashboardPage() {
 
     async function handleSync() {
 
+        /*
+         * =====================================
+         * EVITAR CLIQUES REPETIDOS
+         * =====================================
+         */
+
+        if (
+            syncing
+        ) {
+
+            return;
+
+        }
+
+
         try {
+
+            /*
+             * =====================================
+             * INICIAR FEEDBACK
+             * =====================================
+             */
 
             setSyncing(
                 true
@@ -1013,18 +1210,30 @@ export function DashboardPage() {
             );
 
 
+            setSyncError(
+                null
+            );
+
+
             setError(
                 null
             );
 
 
+            /*
+             * =====================================
+             * SINCRONIZAR GOOGLE DRIVE
+             * =====================================
+             */
+
             await syncGoogleDrive();
 
 
-            setSyncMessage(
-                'Biblioteca sincronizada com sucesso.'
-            );
-
+            /*
+             * =====================================
+             * ATUALIZAR DADOS DO DASHBOARD
+             * =====================================
+             */
 
             await Promise.all([
 
@@ -1037,14 +1246,32 @@ export function DashboardPage() {
             ]);
 
 
-        } catch (error) {
+            /*
+             * Só mostramos sucesso depois que
+             * sincronização + atualização local
+             * terminarem.
+             */
 
-            setError(
+            setSyncMessage(
+                'Biblioteca sincronizada com sucesso.'
+            );
+
+
+        } catch (
+            error
+            ) {
+
+            const message =
 
                 error instanceof Error
-                    ? error.message
-                    : 'Erro ao sincronizar Google Drive.'
 
+                    ? error.message
+
+                    : 'Não foi possível sincronizar o Google Drive.';
+
+
+            setSyncError(
+                message
             );
 
 
@@ -1057,7 +1284,6 @@ export function DashboardPage() {
         }
 
     }
-
 
     /*
      * =====================================
@@ -1271,13 +1497,39 @@ export function DashboardPage() {
                                                         savingWeeklyGoal
                                                     }
 
+                                                    aria-busy={
+                                                        savingWeeklyGoal
+                                                    }
+
                                                 >
 
-                                                    {
-                                                        savingWeeklyGoal
-                                                            ? 'Salvando...'
-                                                            : 'Salvar'
-                                                    }
+                                                    <span
+                                                        className="async-button-content"
+                                                    >
+
+                                                        {
+                                                            savingWeeklyGoal && (
+
+                                                                <span
+                                                                    className="button-spinner"
+                                                                    aria-hidden="true"
+                                                                />
+
+                                                            )
+                                                        }
+
+
+                                                        <span>
+
+                                                            {
+                                                                savingWeeklyGoal
+                                                                    ? 'Salvando...'
+                                                                    : 'Salvar'
+                                                            }
+
+                                                        </span>
+
+                                                    </span>
 
                                                 </button>
 
@@ -1359,6 +1611,48 @@ export function DashboardPage() {
                                         </>
 
                                     )
+                            }
+
+
+                            {
+                                weeklyGoalFeedback && (
+
+                                    <p
+
+                                        className={
+                                            `goal-feedback goal-feedback-${weeklyGoalFeedback.type}`
+                                        }
+
+                                        role={
+                                            weeklyGoalFeedback.type ===
+                                            'error'
+                                                ? 'alert'
+                                                : 'status'
+                                        }
+
+                                    >
+
+                                        <span
+                                            aria-hidden="true"
+                                        >
+
+                                            {
+                                                weeklyGoalFeedback.type ===
+                                                'success'
+                                                    ? '✓'
+                                                    : '⚠'
+                                            }
+
+                                        </span>
+
+
+                                        {
+                                            weeklyGoalFeedback.message
+                                        }
+
+                                    </p>
+
+                                )
                             }
 
                         </article>
@@ -2003,13 +2297,39 @@ export function DashboardPage() {
                                                         savingStudyTimeGoal
                                                     }
 
+                                                    aria-busy={
+                                                        savingStudyTimeGoal
+                                                    }
+
                                                 >
 
-                                                    {
-                                                        savingStudyTimeGoal
-                                                            ? 'Salvando...'
-                                                            : 'Salvar'
-                                                    }
+                                                    <span
+                                                        className="async-button-content"
+                                                    >
+
+                                                        {
+                                                            savingStudyTimeGoal && (
+
+                                                                <span
+                                                                    className="button-spinner"
+                                                                    aria-hidden="true"
+                                                                />
+
+                                                            )
+                                                        }
+
+
+                                                        <span>
+
+                                                            {
+                                                                savingStudyTimeGoal
+                                                                    ? 'Salvando...'
+                                                                    : 'Salvar'
+                                                            }
+
+                                                        </span>
+
+                                                    </span>
 
                                                 </button>
 
@@ -2159,6 +2479,48 @@ export function DashboardPage() {
                                         </>
 
                                     )
+                            }
+
+
+                            {
+                                studyTimeGoalFeedback && (
+
+                                    <p
+
+                                        className={
+                                            `goal-feedback goal-feedback-${studyTimeGoalFeedback.type}`
+                                        }
+
+                                        role={
+                                            studyTimeGoalFeedback.type ===
+                                            'error'
+                                                ? 'alert'
+                                                : 'status'
+                                        }
+
+                                    >
+
+                                        <span
+                                            aria-hidden="true"
+                                        >
+
+                                            {
+                                                studyTimeGoalFeedback.type ===
+                                                'success'
+                                                    ? '✓'
+                                                    : '⚠'
+                                            }
+
+                                        </span>
+
+
+                                        {
+                                            studyTimeGoalFeedback.message
+                                        }
+
+                                    </p>
+
+                                )
                             }
 
                         </article>
@@ -2351,6 +2713,10 @@ export function DashboardPage() {
 
                 message={
                     syncMessage
+                }
+
+                error={
+                    syncError
                 }
 
                 onSync={
