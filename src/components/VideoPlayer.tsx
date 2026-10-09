@@ -476,7 +476,7 @@ export function VideoPlayer({
      * =====================================
      */
 
-    const token = localStorage.getItem('accessToken') || '';
+    const token = localStorage.getItem('video-study:access-token') || '';
 
     const videoStreamUrl = `${getApiUrl(
         `/library/videos/${video.id}/stream`
