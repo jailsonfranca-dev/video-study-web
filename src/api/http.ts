@@ -45,6 +45,42 @@ const API_PREFIX =
     '/api';
 
 
+/*
+ * =========================================
+ * NORMALIZAR PATH
+ * =========================================
+ */
+
+
+function normalizeApiPath(
+    path: string
+) {
+
+    const withoutApiPrefix =
+        path.replace(
+            /^\/api(?=\/|$)/,
+            ''
+        );
+
+
+    return withoutApiPrefix.startsWith('/')
+        ? withoutApiPrefix
+        : `/${withoutApiPrefix}`;
+
+}
+
+
+export function getApiUrl(
+    path: string
+) {
+
+    return (
+        `${API_PREFIX}${normalizeApiPath(path)}`
+    );
+
+}
+
+
 let redirectingToLogin =
     false;
 
@@ -124,79 +160,13 @@ function handleUnauthorized() {
 
 }
 
-
-/*
- * =========================================
- * NORMALIZAR PATH
- * =========================================
- */
-
-function normalizeApiPath(
-    path:
-        string
-) {
-
-    /*
-     * Aceita tanto:
-     *
-     * /library
-     *
-     * quanto:
-     *
-     * /api/library
-     *
-     * e evita gerar:
-     *
-     * /api/api/library
-     */
-
-    const withoutApiPrefix =
-        path.replace(
-            /^\/api(?=\/|$)/,
-            ''
-        );
-
-
-    if (
-        withoutApiPrefix.startsWith(
-            '/'
-        )
-    ) {
-
-        return withoutApiPrefix;
-
-    }
-
-
-    return (
-        `/${withoutApiPrefix}`
-    );
-
-}
-
-
 /*
  * =========================================
  * MONTAR URL
  * =========================================
  */
 
-function buildApiUrl(
-    path:
-        string
-) {
 
-    const normalizedPath =
-        normalizeApiPath(
-            path
-        );
-
-
-    return (
-        `${API_PREFIX}${normalizedPath}`
-    );
-
-}
 
 
 /*
@@ -479,7 +449,7 @@ export async function apiFetch<T>(
      */
 
     const url =
-        buildApiUrl(
+        getApiUrl(
             path
         );
 
