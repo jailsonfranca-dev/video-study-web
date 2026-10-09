@@ -5,6 +5,10 @@ import {
     useState
 } from 'react';
 
+import {
+    getApiUrl
+} from '../api/http';
+
 import type {
     RefObject
 } from 'react';
@@ -471,6 +475,11 @@ export function VideoPlayer({
      * PLAYER
      * =====================================
      */
+
+    const videoStreamUrl =
+        getApiUrl(
+            `/library/videos/${video.id}/stream`
+        );
     return (
 
         <>
@@ -572,16 +581,13 @@ export function VideoPlayer({
                 >
 
                     <source
-
                         src={
-                            `/library/videos/${video.id}/stream`
+                            videoStreamUrl
                         }
-
                         type={
                             video.mimeType ||
                             'video/mp4'
                         }
-
                     />
 
 
