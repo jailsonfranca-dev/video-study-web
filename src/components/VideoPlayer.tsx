@@ -476,10 +476,11 @@ export function VideoPlayer({
      * =====================================
      */
 
-    const videoStreamUrl =
-        getApiUrl(
-            `/library/videos/${video.id}/stream`
-        );
+    const token = localStorage.getItem('token') || '';
+
+    const videoStreamUrl = `${getApiUrl(
+        `/library/videos/${video.id}/stream`
+    )}?token=${token}`;
     return (
 
         <>
