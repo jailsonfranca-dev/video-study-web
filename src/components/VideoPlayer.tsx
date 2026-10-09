@@ -526,7 +526,6 @@ export function VideoPlayer({
 
                         }
                     }
-
                     onWaiting={
                         () => {
 
