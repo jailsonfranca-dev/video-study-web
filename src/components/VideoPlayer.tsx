@@ -490,6 +490,10 @@ export function VideoPlayer({
 
                 <video
 
+                    key={
+                        video.id
+                    }
+
                     ref={
                         videoRef
                     }
@@ -501,6 +505,8 @@ export function VideoPlayer({
                     preload="metadata"
 
                     playsInline
+
+                    crossOrigin="use-credentials"
 
                     onLoadedMetadata={
                         () => {
