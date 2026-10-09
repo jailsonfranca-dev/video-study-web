@@ -248,7 +248,7 @@ export async function createMediaSession() {
 export async function removeMediaSession() {
 
     await apiFetch<void>(
-        '/media-session',
+        '/auth/media-session',
         {
 
             method:
