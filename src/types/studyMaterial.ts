@@ -28,6 +28,8 @@ export interface StudyMaterial {
 
     transcriptAvailable: boolean;
 
+    transcript: string | null;
+
     status: StudyMaterialStatus;
 
     summary: string | null;

@@ -30,13 +30,18 @@ import {
     StudyFlashcards
 } from './StudyFlashcards';
 
+import {
+    StudyTranscript
+} from './StudyTranscript';
+
 import './StudyMaterialPanel.css';
 
 
 type Tab =
     | 'summary'
     | 'mindMap'
-    | 'flashcards';
+    | 'flashcards'
+    | 'transcript';
 
 
 type GenerationFeedback =
@@ -1149,6 +1154,29 @@ function StudyMaterialPanelContent({
                 >
                     Flashcards
                 </button>
+                <button
+
+                    type="button"
+
+                    className={
+                        activeTab ===
+                        'transcript'
+
+                            ? 'active'
+
+                            : ''
+                    }
+
+                    onClick={
+                        () =>
+                            setActiveTab(
+                                'transcript'
+                            )
+                    }
+
+                >
+                    Transcrição
+                </button>
 
             </div>
 
@@ -1169,59 +1197,66 @@ function StudyMaterialPanelContent({
                     {material.status}
                 </span>
 
-
-                <button
-
-                    type="button"
-
-                    onClick={
-                        handleRegenerate
-                    }
-
-                    disabled={
-                        regenerating !== null
-                    }
-
-                    aria-busy={
-                        regenerating ===
-                        activeTab
-                    }
-
-                >
-
-                    <span
-                        className="async-button-content"
-                    >
-
-                        {
-                            regenerating ===
-                            activeTab && (
-
-                                <span
-                                    className="button-spinner"
-                                    aria-hidden="true"
-                                />
-
-                            )
-                        }
+                {
+                    activeTab !==
+                    'transcript' && (
 
 
-                        <span>
+                        <button
 
-                            {
-                                regenerating ===
-                                activeTab
+                            type="button"
 
-                                    ? 'Regenerando...'
-
-                                    : 'Regenerar'
+                            onClick={
+                                handleRegenerate
                             }
 
-                        </span>
+                            disabled={
+                                regenerating !== null
+                            }
 
-                    </span>
+                            aria-busy={
+                                regenerating ===
+                                activeTab
+                            }
 
-                </button>
+                        >
+
+                            <span
+                                className="async-button-content"
+                            >
+
+                                {
+                                    regenerating ===
+                                    activeTab && (
+
+                                        <span
+                                            className="button-spinner"
+                                            aria-hidden="true"
+                                        />
+
+                                    )
+                                }
+
+
+                                <span>
+
+                                    {
+                                        regenerating ===
+                                        activeTab
+
+                                            ? 'Regenerando...'
+
+                                            : 'Regenerar'
+                                    }
+
+                                </span>
+
+                            </span>
+
+                        </button>
+
+                    )
+                }
 
             </div>
 
@@ -1373,6 +1408,31 @@ function StudyMaterialPanelContent({
 
                             flashcards={
                                 material.flashcards
+                            }
+
+                        />
+
+                    )
+                }
+
+                {/*
+                 * =================================
+                 * TRANSCRIÇÃO
+                 * =================================
+                 */}
+
+                {
+                    activeTab ===
+                    'transcript' && (
+
+                        <StudyTranscript
+
+                            videoId={
+                                videoId
+                            }
+
+                            transcript={
+                                material.transcript
                             }
 
                         />

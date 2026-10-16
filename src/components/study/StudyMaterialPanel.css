@@ -1403,4 +1403,381 @@ prefers-reduced-motion:
 
 }
 
+/* =========================================================
+   TRANSCRIPT (TRANSCRIÇÃO DO VÍDEO + MARCA-TEXTO)
+========================================================= */
+
+.study-transcript {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+}
+
+
+.study-transcript-toolbar {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    flex-wrap: wrap;
+
+    gap: 12px;
+}
+
+
+.study-transcript-actions {
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+}
+
+
+.study-transcript-search {
+    flex: 1;
+
+    min-width: 220px;
+
+    min-height: 38px;
+
+    padding:
+            8px 14px;
+
+    border:
+            1px solid
+            var(--color-border-strong);
+
+    border-radius: 8px;
+
+    background:
+            var(--color-surface-secondary);
+
+    color:
+            var(--color-text-primary);
+
+    font-size: 0.9rem;
+
+    outline: none;
+
+    transition:
+            border-color 0.15s ease,
+            box-shadow 0.15s ease;
+}
+
+
+.study-transcript-search::placeholder {
+    color:
+            var(--color-text-muted);
+}
+
+
+.study-transcript-search:focus {
+    border-color:
+            var(--color-primary);
+
+    box-shadow:
+            0 0 0 2px
+            var(--color-primary-soft);
+}
+
+
+.study-transcript-highlight-btn,
+.study-transcript-filter-btn,
+.study-transcript-clear-btn,
+.study-transcript-copy-btn {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 38px;
+
+    padding:
+            8px 14px;
+
+    border:
+            1px solid
+            var(--color-border-strong);
+
+    border-radius: 8px;
+
+    background:
+            var(--color-surface-secondary);
+
+    color:
+            var(--color-text-primary);
+
+    font-weight: 600;
+
+    font-size: 0.875rem;
+
+    cursor: pointer;
+
+    transition:
+            background-color 0.15s ease,
+            border-color 0.15s ease,
+            color 0.15s ease;
+}
+
+
+.study-transcript-highlight-btn {
+    border-color:
+            var(--color-primary);
+
+    background:
+            var(--color-primary-soft);
+
+    color:
+            var(--color-primary);
+}
+
+
+.study-transcript-highlight-btn:hover,
+.study-transcript-filter-btn.active {
+    background:
+            var(--color-primary);
+
+    border-color:
+            var(--color-primary);
+
+    color:
+            #ffffff;
+}
+
+
+.study-transcript-filter-btn:hover,
+.study-transcript-copy-btn:hover {
+    background:
+            var(--color-surface-hover);
+
+    border-color:
+            var(--color-primary);
+
+    color:
+            var(--color-primary);
+}
+
+
+.study-transcript-clear-btn:hover {
+    border-color:
+            var(--color-danger);
+
+    color:
+            var(--color-danger);
+}
+
+
+.study-transcript-hint {
+    margin: 0;
+
+    font-size: 0.82rem;
+
+    color:
+            var(--color-text-muted);
+}
+
+
+.study-transcript-body {
+    max-height: 560px;
+
+    overflow-y: auto;
+
+    padding: 22px;
+
+    border:
+            1px solid
+            var(--color-border);
+
+    border-radius: 12px;
+
+    background:
+            var(--color-surface-secondary);
+
+    color:
+            var(--color-text-secondary);
+
+    line-height: 1.85;
+
+    font-size: 0.96rem;
+
+    overflow-wrap: anywhere;
+}
+
+
+.study-transcript-paragraph {
+    margin:
+            0 0 18px;
+
+    padding-bottom: 14px;
+
+    border-bottom:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--color-border) 55%,
+                    transparent
+            );
+
+    color:
+            var(--color-text-secondary);
+}
+
+
+.study-transcript-paragraph:last-child {
+    margin-bottom: 0;
+
+    padding-bottom: 0;
+
+    border-bottom: 0;
+}
+
+
+/*
+ * Marca-texto permanente do usuário (igual à seleção da Figura 2)
+ */
+.study-transcript-user-highlight {
+    padding:
+            2px 5px;
+
+    border-radius: 4px;
+
+    background-color: #2563eb;
+
+    color: #ffffff;
+
+    font-weight: 500;
+
+    cursor: pointer;
+
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+
+    transition:
+            background-color 0.15s ease,
+            opacity 0.15s ease;
+}
+
+
+.study-transcript-user-highlight:hover {
+    background-color: #1d4ed8;
+    opacity: 0.9;
+}
+
+
+/*
+ * Realce da barra de pesquisa (amarelo suave para diferenciar do marca-texto azul)
+ */
+.study-transcript-search-match {
+    padding:
+            1px 4px;
+
+    border-radius: 4px;
+
+    background:
+            rgba(234, 179, 8, 0.35);
+
+    color:
+            var(--color-text-primary);
+
+    font-weight: 600;
+}
+
+
+/*
+ * Lista resumida quando o usuário clica em "Meus destaques"
+ */
+.study-transcript-highlights-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+
+.study-transcript-highlight-card {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 14px 16px;
+
+    border-left:
+            4px solid
+            #2563eb;
+
+    border-radius: 8px;
+
+    background:
+            var(--color-surface-secondary);
+
+    color:
+            var(--color-text-primary);
+
+    line-height: 1.6;
+}
+
+
+.study-transcript-highlight-card button {
+    border: 0;
+
+    background: transparent;
+
+    color:
+            var(--color-text-muted);
+
+    cursor: pointer;
+
+    font-size: 0.9rem;
+
+    padding: 2px 6px;
+}
+
+
+.study-transcript-highlight-card button:hover {
+    color:
+            var(--color-danger);
+}
+
+
+@media (
+max-width: 650px
+) {
+
+    .study-transcript-toolbar {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
+    .study-transcript-actions {
+        width: 100%;
+    }
+
+
+    .study-transcript-actions button {
+        flex: 1;
+    }
+
+
+    .study-transcript-body {
+        max-height: 420px;
+
+        padding: 16px;
+    }
+
+}
 
