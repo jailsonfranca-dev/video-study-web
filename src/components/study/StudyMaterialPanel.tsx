@@ -34,6 +34,8 @@ import {
     StudyTranscript
 } from './StudyTranscript';
 
+import { StudyFileTab } from './StudyFileTab';
+
 import './StudyMaterialPanel.css';
 
 
@@ -41,7 +43,8 @@ type Tab =
     | 'summary'
     | 'mindMap'
     | 'flashcards'
-    | 'transcript';
+    | 'transcript'
+    | 'file';
 
 
 type GenerationFeedback =
@@ -870,48 +873,74 @@ function StudyMaterialPanelContent({
 
             <section className="study-material study-material-panel">
 
-                <h2>
-                    Material de estudo
-                </h2>
+                <div className="study-tabs" role="tablist" aria-label="Material da aula">
+                    <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeTab !== 'file'}
+                        className={activeTab !== 'file' ? 'active' : ''}
+                        onClick={() => setActiveTab('summary')}
+                    >
+                        Material de estudo
+                    </button>
+                    <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeTab === 'file'}
+                        className={activeTab === 'file' ? 'active' : ''}
+                        onClick={() => setActiveTab('file')}
+                    >
+                        Arquivo
+                    </button>
+                </div>
+
+                {activeTab === 'file' ? (
+                    <StudyFileTab videoId={videoId} />
+                ) : (
+                    <div>
+
+                        <h2>
+                            Material de estudo
+                        </h2>
 
 
-                <p>
-                    Este vídeo ainda não possui
-                    material gerado por IA.
-                </p>
-
-
-                {
-                    error && (
-
-                        <p
-                            className="study-error"
-                            role="alert"
-                        >
-                            {error}
+                        <p>
+                            Este vídeo ainda não possui
+                            material gerado por IA.
                         </p>
 
-                    )
-                }
+
+                        {
+                            error && (
+
+                                <p
+                                    className="study-error"
+                                    role="alert"
+                                >
+                                    {error}
+                                </p>
+
+                            )
+                        }
 
 
-                <button
+                        <button
 
-                    type="button"
+                            type="button"
 
-                    onClick={
-                        handleGenerate
-                    }
+                            onClick={
+                                handleGenerate
+                            }
 
-                    disabled={
-                        generating
-                    }
+                            disabled={
+                                generating
+                            }
 
-                    aria-busy={
-                        generating
-                    }
+                            aria-busy={
+                                generating
+                            }
 
-                >
+                        >
 
                     <span
                         className="async-button-content"
@@ -945,27 +974,27 @@ function StudyMaterialPanelContent({
 
                     </span>
 
-                </button>
+                        </button>
 
 
-                {/*
+                        {/*
                  * =====================================
                  * PROCESSANDO
                  * =====================================
                  */}
 
-                {
-                    generating && (
+                        {
+                            generating && (
 
-                        <div
+                                <div
 
-                            className="ai-generation-status"
+                                    className="ai-generation-status"
 
-                            role="status"
+                                    role="status"
 
-                            aria-live="polite"
+                                    aria-live="polite"
 
-                        >
+                                >
 
                             <span
 
@@ -978,54 +1007,54 @@ function StudyMaterialPanelContent({
                             </span>
 
 
-                            <div>
+                                    <div>
 
-                                <strong>
-                                    Preparando seu material de estudo
-                                </strong>
-
-
-                                <p>
-                                    A IA está processando o conteúdo.
-                                    Isso pode levar um pouco de tempo.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                    )
-                }
+                                        <strong>
+                                            Preparando seu material de estudo
+                                        </strong>
 
 
-                {/*
+                                        <p>
+                                            A IA está processando o conteúdo.
+                                            Isso pode levar um pouco de tempo.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            )
+                        }
+
+
+                        {/*
                  * =====================================
                  * ERRO DA GERAÇÃO
                  * =====================================
                  */}
 
-                {
-                    !generating &&
-                    generationFeedback && (
+                        {
+                            !generating &&
+                            generationFeedback && (
 
-                        <div
+                                <div
 
-                            className={
-                                `ai-generation-feedback ai-generation-feedback-${generationFeedback.type}`
-                            }
+                                    className={
+                                        `ai-generation-feedback ai-generation-feedback-${generationFeedback.type}`
+                                    }
 
-                            role={
-                                generationFeedback.type ===
-                                'error'
+                                    role={
+                                        generationFeedback.type ===
+                                        'error'
 
-                                    ? 'alert'
+                                            ? 'alert'
 
-                                    : 'status'
-                            }
+                                            : 'status'
+                                    }
 
-                            aria-live="polite"
+                                    aria-live="polite"
 
-                        >
+                                >
 
                             <span
                                 aria-hidden="true"
@@ -1043,16 +1072,19 @@ function StudyMaterialPanelContent({
                             </span>
 
 
-                            <span>
+                                    <span>
                                 {
                                     generationFeedback.message
                                 }
                             </span>
 
-                        </div>
+                                </div>
 
-                    )
-                }
+                            )
+                        }
+
+                    </div>
+                )}
 
             </section>
 
@@ -1178,6 +1210,14 @@ function StudyMaterialPanelContent({
                     Transcrição
                 </button>
 
+                <button
+                    type="button"
+                    className={activeTab === 'file' ? 'active' : ''}
+                    onClick={() => setActiveTab('file')}
+                >
+                    Arquivo
+                </button>
+
             </div>
 
 
@@ -1199,7 +1239,9 @@ function StudyMaterialPanelContent({
 
                 {
                     activeTab !==
-                    'transcript' && (
+                    'transcript' &&
+                    activeTab !==
+                    'file' && (
 
 
                         <button
@@ -1439,6 +1481,10 @@ function StudyMaterialPanelContent({
 
                     )
                 }
+
+                {activeTab === 'file' && (
+                    <StudyFileTab videoId={videoId} />
+                )}
 
             </div>
 

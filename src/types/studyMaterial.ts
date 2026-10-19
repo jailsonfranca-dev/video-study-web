@@ -47,6 +47,8 @@ export interface StudyMaterial {
     createdAt?: string | null;
 
     updatedAt?: string | null;
+
+    imageUrl?: string | null;
 }
 
 
