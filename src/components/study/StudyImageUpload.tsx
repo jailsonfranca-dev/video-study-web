@@ -1,131 +1,115 @@
-import {
-    useState,
-    useRef,
-    useEffect
-} from 'react';
-import { getVideoImageBlob, uploadVideoImage } from '../../api/studyMaterialApi';
+import { useEffect, useRef, useState } from 'react';
+import type { KeyboardEvent, PointerEvent } from 'react';
+import { getVideoImagePageBlob } from '../../api/studyMaterialApi';
+import type { VideoImagePage } from '../../api/studyMaterialApi';
 
-
-interface StudyImageUploadProps {
+interface Props {
     videoId: string;
-    imageUrl?: string | null;
-    onImageUploaded: (newUrl: string) => void;
+    page: VideoImagePage;
+    index: number;
+    total: number;
+    busy: boolean;
+    onSelect: (index: number) => void;
+    onAdd: () => void;
+    onDelete: () => void;
 }
 
-
-export function StudyImageUpload({
-                                     videoId,
-                                     imageUrl,
-                                     onImageUploaded
-                                 }: StudyImageUploadProps) {
-
-    const [uploading, setUploading] = useState(false);
+/** Visualizador com navegação de páginas, zoom, pan e Fullscreen API. */
+export function StudyImageUpload({ videoId, page, index, total, busy, onSelect, onAdd, onDelete }: Props) {
     const [zoom, setZoom] = useState(1);
-    const [error, setError] = useState<string | null>(null);
-    const [previewFailed, setPreviewFailed] = useState(false);
-    // Ao montar um novo componente (key do StudyFileTab), inicia em loading se houver imagem.
-    const [previewLoading, setPreviewLoading] = useState(Boolean(imageUrl));
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [preview, setPreview] = useState<{ pageId: string; url: string } | null>(null);
+    const [failedPageId, setFailedPageId] = useState<string | null>(null);
+    const [fullscreen, setFullscreen] = useState(false);
     const [dragging, setDragging] = useState(false);
+    const viewerRef = useRef<HTMLDivElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
     const panRef = useRef<{
         pointerId: number;
-        startX: number;
-        startY: number;
-        scrollLeft: number;
-        scrollTop: number;
+        x: number;
+        y: number;
+        left: number;
+        top: number;
     } | null>(null);
 
-    // Imagens do Drive nao sao enderecos estaveis para <img src>.
-    // Nossa API entrega bytes com JWT; um blob URL local permite exibi-los.
     useEffect(() => {
         const controller = new AbortController();
         let objectUrl: string | null = null;
-
-        // Nada de setState sincrono aqui. O estado inicial ja reflete imageUrl.
-        if (!imageUrl) return () => controller.abort();
-
-        getVideoImageBlob(videoId, controller.signal)
+        getVideoImagePageBlob(videoId, page.id, controller.signal)
             .then(blob => {
                 if (controller.signal.aborted) return;
                 objectUrl = URL.createObjectURL(blob);
-                setPreviewUrl(objectUrl);
+                setPreview({ pageId: page.id, url: objectUrl });
+                setFailedPageId(null);
             })
             .catch(err => {
                 if (!controller.signal.aborted) {
-                    console.error('Falha ao carregar imagem da aula:', err);
-                    setPreviewFailed(true);
+                    console.error('Erro ao carregar página:', err);
+                    setFailedPageId(page.id);
                 }
-            })
-            .finally(() => {
-                if (!controller.signal.aborted) setPreviewLoading(false);
             });
-
         return () => {
             controller.abort();
             if (objectUrl) URL.revokeObjectURL(objectUrl);
         };
-    }, [videoId, imageUrl]);
+    }, [videoId, page.id]);
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    useEffect(() => {
+        const handleChange = () => setFullscreen(document.fullscreenElement === viewerRef.current);
+        document.addEventListener('fullscreenchange', handleChange);
+        return () => document.removeEventListener('fullscreenchange', handleChange);
+    }, []);
 
-        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-            setError('Por favor, selecione um arquivo de imagem válido (PNG, JPG, WEBP).');
-            e.target.value = '';
-            return;
+    const goto = (newIndex: number) => {
+        if (newIndex < 0 || newIndex >= total) return;
+        setZoom(1);
+        if (scrollRef.current) {
+            scrollRef.current.scrollLeft = 0;
+            scrollRef.current.scrollTop = 0;
         }
+        onSelect(newIndex);
+    };
 
-        // JSON/base64 cresce ~33%; limite seguro para express.json({ limit: '10mb' }).
-        if (file.size > 5 * 1024 * 1024) {
-            setError('A imagem deve ter no máximo 5 MB.');
-            e.target.value = '';
-            return;
-        }
-
+    const toggleFullscreen = async () => {
         try {
-            setUploading(true);
-            setError(null);
-
-            const response = await uploadVideoImage(videoId, file);
-            onImageUploaded(response.imageUrl);
-            setZoom(1);
-            setPreviewFailed(false);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erro ao enviar a imagem.');
-        } finally {
-            setUploading(false);
-            e.target.value = '';
+            if (document.fullscreenElement === viewerRef.current) {
+                await document.exitFullscreen();
+            } else {
+                await viewerRef.current?.requestFullscreen();
+                viewerRef.current?.focus();
+            }
+        } catch (error) {
+            console.error('Não foi possível alternar tela cheia:', error);
         }
     };
 
-    // Pan (arrastar) com mouse: o elemento de rolagem acompanha o ponteiro.
-    const handlePanStart = (event: React.PointerEvent<HTMLDivElement>) => {
-        if (event.pointerType !== 'mouse' || event.button !== 0 || !previewUrl || previewFailed) return;
+    const onViewerKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        if (event.altKey || event.ctrlKey || event.metaKey) return;
+        if (event.key === 'ArrowLeft') { event.preventDefault(); goto(index - 1); }
+        if (event.key === 'ArrowRight') { event.preventDefault(); goto(index + 1); }
+    };
+
+    const handlePanStart = (event: PointerEvent<HTMLDivElement>) => {
+        if (event.pointerType !== 'mouse' || event.button !== 0 || preview?.pageId !== page.id) return;
         const element = event.currentTarget;
         if (element.scrollWidth <= element.clientWidth && element.scrollHeight <= element.clientHeight) return;
-
         event.preventDefault();
         panRef.current = {
             pointerId: event.pointerId,
-            startX: event.clientX,
-            startY: event.clientY,
-            scrollLeft: element.scrollLeft,
-            scrollTop: element.scrollTop
+            x: event.clientX, y: event.clientY,
+            left: element.scrollLeft, top: element.scrollTop
         };
         element.setPointerCapture(event.pointerId);
         setDragging(true);
     };
 
-    const handlePanMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const handlePanMove = (event: PointerEvent<HTMLDivElement>) => {
         const pan = panRef.current;
         if (!pan || pan.pointerId !== event.pointerId) return;
-        event.currentTarget.scrollLeft = pan.scrollLeft - (event.clientX - pan.startX);
-        event.currentTarget.scrollTop = pan.scrollTop - (event.clientY - pan.startY);
+        event.currentTarget.scrollLeft = pan.left - (event.clientX - pan.x);
+        event.currentTarget.scrollTop = pan.top - (event.clientY - pan.y);
     };
 
-    const handlePanEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    const handlePanEnd = (event: PointerEvent<HTMLDivElement>) => {
         if (panRef.current?.pointerId !== event.pointerId) return;
         panRef.current = null;
         if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -134,94 +118,76 @@ export function StudyImageUpload({
         setDragging(false);
     };
 
-    const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3));
-    const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.5));
-    const handleResetZoom = () => setZoom(1);
+    const currentUrl = preview?.pageId === page.id ? preview.url : null;
+    const failed = failedPageId === page.id;
 
     return (
         <div className="study-image-container">
-            {error && <p className="study-error" role="alert">{error}</p>}
-            {!imageUrl ? (
-                <div className="study-image-dropzone">
-                    <div className="empty-icon">🖼️</div>
-                    <h3>Nenhum infográfico ou resumo visual cadastrado</h3>
-                    <p>Faça o upload da imagem resumo desta aula (ex: mapa mental desenhado, slide ou infográfico como o da Figura 2).</p>
-                    <button type="button" className="primary-button" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
-                        {uploading ? 'Enviando imagem...' : 'Selecionar Imagem'}
-                    </button>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        style={{ display: 'none' }}
-                        onChange={handleFileChange}
-                    />
-                </div>
-            ) : (
-                <div className="study-image-viewer-wrapper">
-                    <div className="study-image-toolbar">
-                        <div className="zoom-controls">
-                            <button type="button" onClick={handleZoomOut} title="Diminuir Zoom (-)">-</button>
-                            <span className="zoom-level">{Math.round(zoom * 100)}%</span>
-                            <button type="button" onClick={handleZoomIn} title="Aumentar Zoom (+)">+</button>
-                            <button type="button" onClick={handleResetZoom} className="zoom-reset-btn" title="Resetar Zoom">1:1</button>
-                        </div>
+            <div className="study-image-viewer-wrapper" ref={viewerRef} tabIndex={-1} onKeyDown={onViewerKeyDown}>
+                <div className="study-image-toolbar">
+                    <div className="zoom-controls" aria-label="Zoom da imagem">
+                        <button type="button" onClick={() => setZoom(z => Math.max(.5, z - .25))} aria-label="Diminuir zoom">−</button>
+                        <span className="zoom-level">{Math.round(zoom * 100)}%</span>
+                        <button type="button" onClick={() => setZoom(z => Math.min(3, z + .25))} aria-label="Aumentar zoom">+</button>
+                        <button type="button" onClick={() => setZoom(1)} className="zoom-reset-btn" title="Restaurar zoom">1:1</button>
+                    </div>
 
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="study-image-replace-btn"
-                            disabled={uploading}
-                        >
-                            {uploading ? 'Enviando...' : '🔄 Substituir Imagem'}
+                    <nav className="study-page-controls" aria-label="Páginas do arquivo">
+                        <button type="button" disabled={index === 0} onClick={() => goto(index - 1)} aria-label="Página anterior">‹</button>
+                        <span className="study-page-counter" aria-live="polite">Parte {index + 1} de {total}</span>
+                        <button type="button" disabled={index === total - 1} onClick={() => goto(index + 1)} aria-label="Próxima página">›</button>
+                    </nav>
+
+                    <div className="study-image-actions">
+                        <button type="button" className="study-image-replace-btn" onClick={toggleFullscreen}
+                                aria-label={fullscreen ? 'Sair da tela cheia' : 'Ver em tela cheia'}>
+                            {fullscreen ? '⤢ Sair da tela cheia' : '⛶ Tela cheia'}
                         </button>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            style={{ display: 'none' }}
-                            onChange={handleFileChange}
-                        />
-                    </div>
-
-                    <div className="study-image-viewport">
-                        <div
-                            className={`study-image-scrollable${dragging ? ' is-dragging' : ''}`}
-                            tabIndex={0}
-                            aria-label="Imagem da aula: role ou arraste para ver as partes ampliadas"
-                            onPointerDown={handlePanStart}
-                            onPointerMove={handlePanMove}
-                            onPointerUp={handlePanEnd}
-                            onPointerCancel={handlePanEnd}
-                            onLostPointerCapture={() => {
-                                panRef.current = null;
-                                setDragging(false);
-                            }}
-                        >
-                            {previewLoading ? (
-                                <p role="status">Carregando imagem...</p>
-                            ) : previewFailed || !previewUrl ? (
-                                <div className="study-image-preview-fallback" role="status">
-                                    <p>Não foi possível exibir a prévia desta imagem.</p>
-                                    <a href={imageUrl} target="_blank" rel="noopener noreferrer">
-                                        Abrir arquivo no Google Drive
-                                    </a>
-                                </div>
-                            ) : (
-                                <img
-                                    src={previewUrl}
-                                    alt="Imagem associada a este vídeo"
-                                    onError={() => setPreviewFailed(true)}
-                                    // Largura real altera scrollWidth/scrollHeight, ao contrario de transform: scale().
-                                    style={{ width: `${zoom * 100}%` }}
-                                    draggable={false}
-                                    className="study-zoomable-image"
-                                />
-                            )}
-                        </div>
+                        <button type="button" className="study-image-replace-btn" onClick={onAdd} disabled={busy || total >= 30}>
+                            {busy ? 'Enviando...' : '+ Adicionar páginas'}
+                        </button>
+                        <button type="button" className="study-image-replace-btn study-image-delete-btn" onClick={onDelete} disabled={busy}>
+                            Excluir página
+                        </button>
                     </div>
                 </div>
-            )}
+
+                <div className="study-image-viewport">
+                    <div className={`study-image-scrollable${dragging ? ' is-dragging' : ''}`}
+                         ref={scrollRef} tabIndex={0}
+                         aria-label={`Página ${index + 1} de ${total}: arraste ou role para navegar na imagem`}
+                         onPointerDown={handlePanStart} onPointerMove={handlePanMove}
+                         onPointerUp={handlePanEnd} onPointerCancel={handlePanEnd}
+                         onLostPointerCapture={() => { panRef.current = null; setDragging(false); }}>
+                        {failed ? (
+                            <div className="study-image-preview-fallback" role="alert">
+                                <p>Não foi possível carregar esta página.</p>
+                                <a href={page.imageUrl} target="_blank" rel="noopener noreferrer">Abrir no Google Drive</a>
+                            </div>
+                        ) : !currentUrl ? (
+                            <p role="status" className="study-image-loading">Carregando página {index + 1}...</p>
+                        ) : (
+                            <img src={currentUrl}
+                                 alt={`Infográfico da aula, parte ${index + 1} de ${total}`}
+                                 className="study-zoomable-image"
+                                 style={{ width: `${zoom * 100}%` }}
+                                 draggable={false}
+                                 onError={() => setFailedPageId(page.id)} />
+                        )}
+                    </div>
+                </div>
+                <div className="study-page-indicators" aria-label="Ir para uma página">
+                    {Array.from({ length: total }, (_, number) => (
+                        <button type="button" key={number}
+                                onClick={() => goto(number)}
+                                className={number === index ? 'is-active' : ''}
+                                aria-current={number === index ? 'page' : undefined}
+                                aria-label={`Mostrar página ${number + 1}`}>
+                            {number + 1}
+                        </button>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }

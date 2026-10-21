@@ -153,3 +153,70 @@ export async function getVideoImageBlob(videoId: string, signal?: AbortSignal): 
 
     return response.blob();
 }
+
+// ===========================================================
+// Galeria de imagens por aula (múltiplas páginas).
+// As rotas antigas /image continuam disponíveis para compatibilidade.
+// ===========================================================
+
+export interface VideoImagePage {
+    id: string;
+    videoId: string;
+    imageUrl: string;
+    position: number;
+    createdAt: string;
+}
+
+export interface VideoImagePagesResponse {
+    videoId: string;
+    pages: VideoImagePage[];
+}
+
+export function getVideoImagePages(videoId: string, signal?: AbortSignal) {
+    return apiFetch<VideoImagePagesResponse>(
+        `/library/videos/${videoId}/study-material/images`,
+        { signal }
+    );
+}
+
+export async function uploadVideoImagePage(videoId: string, file: File) {
+    const image = await readImageAsDataUrl(file);
+    return apiFetch<{ message: string; page: VideoImagePage }>(
+        `/library/videos/${videoId}/study-material/images`,
+        { method: 'POST', body: JSON.stringify({ image }) }
+    );
+}
+
+export function deleteVideoImagePage(videoId: string, pageId: string) {
+    return apiFetch<{ message: string; pageId: string }>(
+        `/library/videos/${videoId}/study-material/images/${pageId}`,
+        { method: 'DELETE' }
+    );
+}
+
+export async function getVideoImagePageBlob(
+    videoId: string,
+    pageId: string,
+    signal?: AbortSignal
+): Promise<Blob> {
+    const token = getAccessToken();
+    const headers = new Headers();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+
+    const response = await fetch(
+        getApiUrl(`/library/videos/${encodeURIComponent(videoId)}/study-material/images/${encodeURIComponent(pageId)}/content`),
+        { headers, signal, credentials: 'include' }
+    );
+    if (!response.ok) {
+        let message = `Erro HTTP ${response.status} ao carregar página.`;
+        try {
+            const data: { error?: string; message?: string } = await response.json();
+            message = data.error || data.message || message;
+        } catch { /* Resposta não JSON. */ }
+        throw new Error(message);
+    }
+    if (!(response.headers.get('Content-Type') || '').startsWith('image/')) {
+        throw new Error('O servidor não retornou uma imagem.');
+    }
+    return response.blob();
+}
